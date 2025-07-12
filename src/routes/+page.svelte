@@ -1,22 +1,72 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
-  import { onMount } from "svelte";
+  import Button from "../components/Button.svelte";
+  import CreateCompany from "../components/CreateCompany.svelte";
+  import DropDown from "../components/Dropdown.svelte";
+  import Home from "../components/Home.svelte";
+  import ListCompanies from "../components/ListCompanies.svelte";
 
-  let greetMsg = $state("");
+  type View = "CREATE_COMPANY" | "COMPANY_DETAILS" | "HOME";
+  let currentView: View = $state("HOME");
 
-  onMount(async () => {
-    greetMsg = await invoke("first_text");
-  });
+  let mainOptions = [
+    {
+      text: "Company",
+      options: [
+        {
+          text: "Create Company",
+          onclick: () => (currentView = "CREATE_COMPANY"),
+        },
+        {
+          text: "Open Company",
+          onclick: () => (currentView = "COMPANY_DETAILS"),
+        },
+      ],
+    },
+    {
+      text: "Administration",
+      options: [],
+    },
+    {
+      text: "Transactions",
+      options: [],
+    },
+    {
+      text: "Display",
+      options: [],
+    },
+    {
+      text: "Print/Email/SMS",
+      options: [],
+    },
+    {
+      text: "House-Keeping",
+      options: [],
+    },
+    {
+      text: "Help",
+      options: [],
+    },
+    {
+      text: "Favorites",
+      options: [],
+    },
+  ];
 </script>
 
-<main class="container">
-  <h1>Billable</h1>
-  <p>{greetMsg}</p>
+<main class="flex flex-col gap-4 p-2 h-screen">
+  <div class="flex gap-2 flex-wrap">
+    <Button onclick={() => (currentView = "HOME")}>Home</Button>
+    {#each mainOptions as { text, options }}
+      <DropDown {text} {options} />
+    {/each}
+  </div>
+  {#if currentView == "CREATE_COMPANY"}
+    <CreateCompany />
+  {/if}
+  {#if currentView == "COMPANY_DETAILS"}
+    <ListCompanies />
+  {/if}
+  {#if currentView == "HOME"}
+    <Home />
+  {/if}
 </main>
-
-<style>
-  .container {
-    color: white;
-    background-color: black;
-  }
-</style>
