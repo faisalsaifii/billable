@@ -1,46 +1,45 @@
 <script lang="ts">
   import { companyService } from "../lib/services/companyService";
-  import type { CreateCompanyDTO } from "../types";
+  import type { Company, CreateCompanyDTO } from "../types";
   import Input from "./Input.svelte";
-  import SuperUserModal from "./SuperUserModal.svelte";
+  import { createEventDispatcher } from "svelte";
+
+  const dispatch = createEventDispatcher();
+
+  export let company: Company;
 
   let loading = false;
   let error = "";
-  let showSuperUserModal = false;
-  let newCompanyId = 0;
 
-  let formData: CreateCompanyDTO = {
-    name: "",
-    printName: "",
-    fyBeginningFrom: new Date().toISOString().split("T")[0],
-    booksCommencingFrom: new Date().toISOString().split("T")[0],
-    address1: "",
-    address2: "",
-    address3: "",
-    address4: "",
-    itPAN: "",
-    telNo: "",
-    ward: "",
-    fax: "",
-    email: "",
-    country: "",
-    state: "",
-    currencySymbol: "Rs.",
-    currencyString: "Rupees",
-    currencySubString: "Paisa",
-    enableTax: false,
-    taxType: null,
-    enableAddTax: false,
-    addTaxCaption: "",
-    tin: "",
-    lstNo: "",
-    gstNo: "",
-    cstNo: "",
-    defaultTaxRate1: 0,
-    defaultTaxRate2: 0,
+  let formData: Partial<CreateCompanyDTO> = {
+    printName: company.printName,
+    booksCommencingFrom: company.booksCommencingFrom,
+    address1: company.address1,
+    address2: company.address2,
+    address3: company.address3,
+    address4: company.address4,
+    itPAN: company.itPAN,
+    telNo: company.telNo,
+    ward: company.ward,
+    fax: company.fax,
+    email: company.email,
+    state: company.state,
+    currencySymbol: company.currencySymbol,
+    currencyString: company.currencyString,
+    currencySubString: company.currencySubString,
+    enableTax: company.enableTax,
+    taxType: company.taxType,
+    enableAddTax: company.enableAddTax,
+    addTaxCaption: company.addTaxCaption,
+    tin: company.tin,
+    lstNo: company.lstNo,
+    gstNo: company.gstNo,
+    cstNo: company.cstNo,
+    defaultTaxRate1: company.defaultTaxRate1,
+    defaultTaxRate2: company.defaultTaxRate2,
   };
 
-  let showTaxFields = false;
+  let showTaxFields = company.enableTax;
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
@@ -48,78 +47,27 @@
     error = "";
 
     try {
-      // Validate required fields
-      if (!formData.name || !formData.printName) {
-        throw new Error("Company name and print name are required");
-      }
-
-      if (!formData.country) {
-        throw new Error("Country is required");
-      }
-
-      // Initialize database
       await companyService.initialize();
-
-      // Check for duplicate name
-      const existing = await companyService.getCompanyByName(formData.name);
-      if (existing) {
-        throw new Error(`Company '${formData.name}' already exists`);
-      }
-
-      // Create company
-      newCompanyId = await companyService.createCompany(formData);
-
-      // Show SuperUser creation modal
-      showSuperUserModal = true;
+      await companyService.updateCompany(company.id, formData);
+      dispatch("updated");
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to create company";
+      error = err instanceof Error ? err.message : "Failed to update company";
       console.error("Error:", err);
     } finally {
       loading = false;
     }
   };
 
-  const handleSuperUserCreated = () => {
-    // Reset form
-    formData = {
-      name: "",
-      printName: "",
-      fyBeginningFrom: new Date().toISOString().split("T")[0],
-      booksCommencingFrom: new Date().toISOString().split("T")[0],
-      address1: "",
-      address2: "",
-      address3: "",
-      address4: "",
-      itPAN: "",
-      telNo: "",
-      ward: "",
-      fax: "",
-      email: "",
-      country: "",
-      state: "",
-      currencySymbol: "Rs.",
-      currencyString: "Rupees",
-      currencySubString: "Paisa",
-      enableTax: false,
-      taxType: null,
-      enableAddTax: false,
-      addTaxCaption: "",
-      tin: "",
-      lstNo: "",
-      gstNo: "",
-      cstNo: "",
-      defaultTaxRate1: 0,
-      defaultTaxRate2: 0,
-    };
-    showSuperUserModal = false;
+  const handleCancel = () => {
+    dispatch("cancel");
   };
 </script>
 
 <div class="p-8 max-w-4xl mx-auto">
-  <h1 class="font-bold text-2xl mb-2 text-white">Create Company</h1>
-  <p class="text-neutral-500 mb-8">
-    Set up a new company for accounting and inventory management
-  </p>
+  <h1 class="font-bold text-2xl mb-2 text-white">
+    Edit Company: {company.name}
+  </h1>
+  <p class="text-neutral-500 mb-8">Update company information and settings</p>
 
   {#if error}
     <div
@@ -133,14 +81,15 @@
     <!-- Basic Info Section -->
     <div class="card-elevated">
       <h2 class="section-title">Basic Information</h2>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           name="name"
           label="Company Name"
           type="text"
-          bind:value={formData.name}
-          required
-          placeholder="e.g., ABC Pvt Ltd"
+          value={company.name}
+          disabled
+          placeholder="Cannot be changed"
         />
         <Input
           name="printName"
@@ -148,16 +97,15 @@
           type="text"
           bind:value={formData.printName}
           required
-          placeholder="As it appears on reports"
         />
 
         <Input
           name="fyBeginningFrom"
           label="Financial Year Beginning From"
           type="date"
-          bind:value={formData.fyBeginningFrom}
-          required
+          value={company.fyBeginningFrom}
           disabled
+          placeholder="Cannot be changed"
         />
         <Input
           name="booksCommencingFrom"
@@ -172,6 +120,7 @@
     <!-- Address Section -->
     <div class="card-elevated">
       <h2 class="section-title">Address</h2>
+
       <div class="grid grid-cols-1 gap-4">
         <Input
           name="address1"
@@ -203,8 +152,8 @@
             name="country"
             label="Country"
             type="text"
-            bind:value={formData.country}
-            required
+            value={company.country}
+            disabled
           />
           <Input
             name="state"
@@ -262,52 +211,46 @@
           label="Currency Symbol"
           type="text"
           bind:value={formData.currencySymbol}
-          placeholder="Rs."
         />
         <Input
           name="currencyString"
           label="Currency Name"
           type="text"
           bind:value={formData.currencyString}
-          placeholder="Rupees"
         />
         <Input
           name="currencySubString"
           label="Currency Sub-unit"
           type="text"
           bind:value={formData.currencySubString}
-          placeholder="Paisa"
         />
       </div>
     </div>
 
-    <!-- Tax Configuration -->
+    <!-- Tax Section -->
     <div class="card-elevated">
       <h2 class="section-title">Tax Configuration</h2>
 
       <div class="space-y-4">
-        <label class="flex items-center gap-3 cursor-pointer">
+        <label class="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             bind:checked={formData.enableTax}
-            onchange={() => (showTaxFields = formData.enableTax)}
-            class="w-4 h-4 rounded bg-neutral-800 border-neutral-600 cursor-pointer"
+            onchange={() => (showTaxFields = formData.enableTax || false)}
           />
-          <span class="text-neutral-300">Enable Tax</span>
+          <span>Enable Tax</span>
         </label>
 
         {#if showTaxFields}
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label
-                for="taxType"
-                class="block text-sm font-medium text-neutral-300 mb-1.5"
+              <label for="taxType" class="block text-sm font-medium mb-1"
                 >Tax Type</label
               >
               <select
                 id="taxType"
                 bind:value={formData.taxType}
-                class="w-full border border-neutral-600 rounded-lg p-2 bg-neutral-800 text-white focus:border-blue-500"
+                class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
               >
                 <option value={null}>Select Tax Type</option>
                 <option value="LST">LST</option>
@@ -353,14 +296,13 @@
             {/if}
           </div>
 
-          <div class="flex items-center gap-3 my-4">
+          <div class="flex items-center gap-2 my-4">
             <input
               type="checkbox"
               bind:checked={formData.enableAddTax}
               id="enableAddTax"
-              class="w-4 h-4 rounded bg-neutral-800 border-neutral-600 cursor-pointer"
             />
-            <label for="enableAddTax" class="cursor-pointer text-neutral-300">
+            <label for="enableAddTax" class="cursor-pointer">
               Enable Additional Tax / Surcharge
             </label>
           </div>
@@ -399,20 +341,20 @@
 
     <div class="flex gap-3 pt-2">
       <button
+        type="button"
+        onclick={handleCancel}
+        disabled={loading}
+        class="flex-1 p-2 border border-neutral-600 rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors duration-150 font-medium"
+      >
+        Cancel
+      </button>
+      <button
         type="submit"
         disabled={loading}
-        class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors duration-150"
+        class="flex-1 p-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors duration-150"
       >
-        {loading ? "Creating Company..." : "Create Company"}
+        {loading ? "Saving Changes..." : "Save Changes"}
       </button>
     </div>
   </form>
 </div>
-
-{#if showSuperUserModal}
-  <SuperUserModal
-    companyId={newCompanyId}
-    oncreated={handleSuperUserCreated}
-    oncancel={() => (showSuperUserModal = false)}
-  />
-{/if}

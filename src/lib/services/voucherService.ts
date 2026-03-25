@@ -1,0 +1,242 @@
+import Database from "@tauri-apps/plugin-sql";
+import type { Voucher, VoucherAccountLine, VoucherItemLine, VoucherBillSundryLine, CreateVoucherDTO, VoucherType } from "../../types";
+
+class VoucherService {
+  private db: Database | null = null;
+
+  async initialize(db: Database) {
+    this.db = db;
+    await this.createTables();
+  }
+
+  private async createTables() {
+    if (!this.db) throw new Error("Database not initialized");
+
+    await this.db.execute(`
+      CREATE TABLE IF NOT EXISTS vouchers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        companyId INTEGER NOT NULL,
+        voucherType TEXT NOT NULL,
+        series TEXT NOT NULL DEFAULT 'Main',
+        vchNo TEXT NOT NULL,
+        date TEXT NOT NULL,
+        stockDate TEXT,
+        partyAccountId INTEGER,
+        materialCentreId INTEGER,
+        materialCentreToId INTEGER,
+        saleTypeId INTEGER,
+        purchaseTypeId INTEGER,
+        narration TEXT NOT NULL DEFAULT '',
+        totalAmount REAL NOT NULL DEFAULT 0,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        FOREIGN KEY (companyId) REFERENCES companies(id) ON DELETE CASCADE,
+        FOREIGN KEY (partyAccountId) REFERENCES accounts(id) ON DELETE SET NULL
+      );
+    `);
+
+    await this.db.execute(`
+      CREATE TABLE IF NOT EXISTS voucher_account_lines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        voucherId INTEGER NOT NULL,
+        accountId INTEGER NOT NULL,
+        dc TEXT NOT NULL CHECK(dc IN ('D','C')),
+        amount REAL NOT NULL DEFAULT 0,
+        shortNarration TEXT,
+        FOREIGN KEY (voucherId) REFERENCES vouchers(id) ON DELETE CASCADE,
+        FOREIGN KEY (accountId) REFERENCES accounts(id) ON DELETE CASCADE
+      );
+    `);
+
+    await this.db.execute(`
+      CREATE TABLE IF NOT EXISTS voucher_item_lines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        voucherId INTEGER NOT NULL,
+        itemId INTEGER NOT NULL,
+        qty REAL NOT NULL DEFAULT 0,
+        unitId INTEGER,
+        rate REAL NOT NULL DEFAULT 0,
+        discount REAL NOT NULL DEFAULT 0,
+        amount REAL NOT NULL DEFAULT 0,
+        materialCentreId INTEGER,
+        FOREIGN KEY (voucherId) REFERENCES vouchers(id) ON DELETE CASCADE,
+        FOREIGN KEY (itemId) REFERENCES items(id) ON DELETE CASCADE
+      );
+    `);
+
+    await this.db.execute(`
+      CREATE TABLE IF NOT EXISTS voucher_bill_sundry_lines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        voucherId INTEGER NOT NULL,
+        billSundryId INTEGER NOT NULL,
+        rate REAL NOT NULL DEFAULT 0,
+        amount REAL NOT NULL DEFAULT 0,
+        FOREIGN KEY (voucherId) REFERENCES vouchers(id) ON DELETE CASCADE,
+        FOREIGN KEY (billSundryId) REFERENCES bill_sundries(id) ON DELETE CASCADE
+      );
+    `);
+  }
+
+  async getNextVoucherNo(companyId: number, voucherType: VoucherType, series: string): Promise<string> {
+    if (!this.db) throw new Error("Database not initialized");
+    const rows = await this.db.select<{cnt: number}[]>(
+      "SELECT COUNT(*) as cnt FROM vouchers WHERE companyId=?1 AND voucherType=?2 AND series=?3",
+      [companyId, voucherType, series]
+    );
+    return String((rows[0]?.cnt || 0) + 1);
+  }
+
+  async createVoucher(data: CreateVoucherDTO): Promise<number> {
+    if (!this.db) throw new Error("Database not initialized");
+    const now = new Date().toISOString();
+
+    await this.db.execute(
+      `INSERT INTO vouchers (companyId,voucherType,series,vchNo,date,stockDate,partyAccountId,
+       materialCentreId,materialCentreToId,saleTypeId,purchaseTypeId,narration,totalAmount,createdAt,updatedAt)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)`,
+      [data.companyId, data.voucherType, data.series, data.vchNo, data.date,
+       data.stockDate||null, data.partyAccountId||null, data.materialCentreId||null,
+       data.materialCentreToId||null, data.saleTypeId||null, data.purchaseTypeId||null,
+       data.narration, data.totalAmount, now, now]
+    );
+
+    const vRows = await this.db.select<{id:number}[]>("SELECT last_insert_rowid() as id");
+    const voucherId = vRows[0]?.id || 0;
+
+    for (const line of data.accountLines) {
+      await this.db.execute(
+        `INSERT INTO voucher_account_lines (voucherId,accountId,dc,amount,shortNarration)
+         VALUES (?1,?2,?3,?4,?5)`,
+        [voucherId, line.accountId, line.dc, line.amount, line.shortNarration||null]
+      );
+    }
+
+    for (const line of data.itemLines) {
+      await this.db.execute(
+        `INSERT INTO voucher_item_lines (voucherId,itemId,qty,unitId,rate,discount,amount,materialCentreId)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`,
+        [voucherId, line.itemId, line.qty, line.unitId||null, line.rate,
+         line.discount||0, line.amount, line.materialCentreId||null]
+      );
+    }
+
+    for (const line of data.billSundryLines) {
+      await this.db.execute(
+        `INSERT INTO voucher_bill_sundry_lines (voucherId,billSundryId,rate,amount)
+         VALUES (?1,?2,?3,?4)`,
+        [voucherId, line.billSundryId, line.rate, line.amount]
+      );
+    }
+
+    return voucherId;
+  }
+
+  async getVouchers(companyId: number, voucherType?: VoucherType, fromDate?: string, toDate?: string): Promise<Voucher[]> {
+    if (!this.db) throw new Error("Database not initialized");
+    let query = "SELECT * FROM vouchers WHERE companyId=?1";
+    const params: (string | number)[] = [companyId];
+    let idx = 2;
+    if (voucherType) { query += ` AND voucherType=?${idx++}`; params.push(voucherType); }
+    if (fromDate)    { query += ` AND date>=?${idx++}`; params.push(fromDate); }
+    if (toDate)      { query += ` AND date<=?${idx++}`; params.push(toDate); }
+    query += " ORDER BY date DESC, id DESC";
+    return await this.db.select(query, params);
+  }
+
+  async getVoucherById(id: number): Promise<{
+    voucher: Voucher;
+    accountLines: VoucherAccountLine[];
+    itemLines: VoucherItemLine[];
+    billSundryLines: VoucherBillSundryLine[];
+  } | null> {
+    if (!this.db) throw new Error("Database not initialized");
+    const vouchers = await this.db.select<Voucher[]>("SELECT * FROM vouchers WHERE id=?1", [id]);
+    if (!vouchers[0]) return null;
+    const accountLines = await this.db.select<VoucherAccountLine[]>(
+      "SELECT * FROM voucher_account_lines WHERE voucherId=?1", [id]
+    );
+    const itemLines = await this.db.select<VoucherItemLine[]>(
+      "SELECT * FROM voucher_item_lines WHERE voucherId=?1", [id]
+    );
+    const billSundryLines = await this.db.select<VoucherBillSundryLine[]>(
+      "SELECT * FROM voucher_bill_sundry_lines WHERE voucherId=?1", [id]
+    );
+    return { voucher: vouchers[0], accountLines, itemLines, billSundryLines };
+  }
+
+  async deleteVoucher(id: number): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
+    await this.db.execute("DELETE FROM vouchers WHERE id=?1", [id]);
+  }
+
+  // ==================== REPORT QUERIES ====================
+
+  async getTrialBalance(companyId: number): Promise<{ accountId: number; name: string; groupName: string; debit: number; credit: number }[]> {
+    if (!this.db) throw new Error("Database not initialized");
+    return await this.db.select(`
+      SELECT a.id as accountId, a.name, ag.name as groupName,
+        COALESCE(SUM(CASE WHEN val.dc='D' THEN val.amount ELSE 0 END), 0) +
+          CASE WHEN a.openingBalanceType='Debit' THEN a.openingBalance ELSE 0 END as debit,
+        COALESCE(SUM(CASE WHEN val.dc='C' THEN val.amount ELSE 0 END), 0) +
+          CASE WHEN a.openingBalanceType='Credit' THEN a.openingBalance ELSE 0 END as credit
+      FROM accounts a
+      JOIN account_groups ag ON a.groupId = ag.id
+      LEFT JOIN voucher_account_lines val ON a.id = val.accountId
+      LEFT JOIN vouchers v ON val.voucherId = v.id AND v.companyId = ?1
+      WHERE a.companyId = ?1 AND a.active = 1
+      GROUP BY a.id, a.name, ag.name
+      HAVING debit > 0 OR credit > 0
+      ORDER BY ag.name, a.name
+    `, [companyId]);
+  }
+
+  async getAccountLedger(companyId: number, accountId: number, fromDate?: string, toDate?: string): Promise<{
+    date: string; voucherType: string; vchNo: string; narration: string; debit: number; credit: number; balance: number
+  }[]> {
+    if (!this.db) throw new Error("Database not initialized");
+    let query = `
+      SELECT v.date, v.voucherType, v.vchNo, v.narration,
+        CASE WHEN val.dc='D' THEN val.amount ELSE 0 END as debit,
+        CASE WHEN val.dc='C' THEN val.amount ELSE 0 END as credit
+      FROM voucher_account_lines val
+      JOIN vouchers v ON val.voucherId = v.id
+      WHERE v.companyId=?1 AND val.accountId=?2
+    `;
+    const params: (string | number)[] = [companyId, accountId];
+    let idx = 3;
+    if (fromDate) { query += ` AND v.date>=?${idx++}`; params.push(fromDate); }
+    if (toDate)   { query += ` AND v.date<=?${idx++}`; params.push(toDate); }
+    query += " ORDER BY v.date ASC, v.id ASC";
+    const rows = await this.db.select<{date:string;voucherType:string;vchNo:string;narration:string;debit:number;credit:number}[]>(query, params);
+    let balance = 0;
+    return rows.map(r => {
+      balance += r.debit - r.credit;
+      return { ...r, balance };
+    });
+  }
+
+  async getStockStatus(companyId: number): Promise<{ itemId: number; name: string; groupName: string; inQty: number; outQty: number; closingQty: number }[]> {
+    if (!this.db) throw new Error("Database not initialized");
+    return await this.db.select(`
+      SELECT i.id as itemId, i.name,
+        COALESCE(ig.name,'Unknown') as groupName,
+        i.openingStock +
+          COALESCE(SUM(CASE WHEN v.voucherType IN ('Purchase','Purchase Return','Stock Transfer') THEN
+            CASE WHEN v.voucherType='Purchase Return' THEN -vil.qty ELSE vil.qty END ELSE 0 END), 0) as inQty,
+        COALESCE(SUM(CASE WHEN v.voucherType IN ('Sales','Sales Return') THEN
+            CASE WHEN v.voucherType='Sales Return' THEN -vil.qty ELSE vil.qty END ELSE 0 END), 0) as outQty,
+        i.openingStock +
+          COALESCE(SUM(CASE WHEN v.voucherType IN ('Purchase') THEN vil.qty
+            WHEN v.voucherType IN ('Sales') THEN -vil.qty ELSE 0 END), 0) as closingQty
+      FROM items i
+      LEFT JOIN item_groups ig ON i.groupId = ig.id
+      LEFT JOIN voucher_item_lines vil ON i.id = vil.itemId
+      LEFT JOIN vouchers v ON vil.voucherId = v.id AND v.companyId = ?1
+      WHERE i.companyId = ?1 AND i.active = 1
+      GROUP BY i.id, i.name, ig.name
+      ORDER BY ig.name, i.name
+    `, [companyId]);
+  }
+}
+
+export const voucherService = new VoucherService();
