@@ -31,9 +31,11 @@
   let saleTypes: SaleType[] = $state([]);
   let purchaseTypes: PurchaseType[] = $state([]);
   let loading = $state(false);
+  let loadingMasters = $state(false);
   let error = $state("");
   let successMsg = $state("");
   let nextVchNo = $state("");
+  let mastersLoadedForCompanyId = $state<number | null>(null);
 
   interface ItemLine {
     itemId: number;
@@ -77,30 +79,58 @@
     return unsub;
   });
 
+  const loadMastersForCompany = async (id: number) => {
+    if (!id || mastersLoadedForCompanyId === id) return;
+    loadingMasters = true;
+    error = "";
+    try {
+      [accounts, items, units, billSundries, saleTypes, purchaseTypes] =
+        await Promise.all([
+          mastersService.getAccounts(id),
+          mastersService.getItems(id),
+          mastersService.getUnits(id),
+          mastersService.getBillSundries(id),
+          mastersService.getSaleTypes(id),
+          mastersService.getPurchaseTypes(id),
+        ]);
+
+      header.partyAccountId = accounts[0]?.id || 0;
+      header.saleTypeId = saleTypes[0]?.id || 0;
+      header.purchaseTypeId = purchaseTypes[0]?.id || 0;
+
+      itemLines = [
+        {
+          itemId: items[0]?.id || 0,
+          qty: 1,
+          unitId: units[0]?.id || 0,
+          rate: items[0]?.salePrice || items[0]?.purchasePrice || 0,
+          discount: 0,
+          amount: 0,
+        },
+      ];
+      updateItemLine(0, "qty", 1);
+
+      nextVchNo = await voucherService.getNextVoucherNo(
+        id,
+        voucherType,
+        header.series
+      );
+      mastersLoadedForCompanyId = id;
+    } finally {
+      loadingMasters = false;
+    }
+  };
+
   onMount(async () => {
     await companyService.initialize();
-    [accounts, items, units, billSundries, saleTypes, purchaseTypes] =
-      await Promise.all([
-        mastersService.getAccounts(companyId),
-        mastersService.getItems(companyId),
-        mastersService.getUnits(companyId),
-        mastersService.getBillSundries(companyId),
-        mastersService.getSaleTypes(companyId),
-        mastersService.getPurchaseTypes(companyId),
-      ]);
-    if (accounts.length) header.partyAccountId = accounts[0].id;
-    if (items.length) {
-      itemLines[0].itemId = items[0].id;
-      itemLines[0].rate = items[0].salePrice || items[0].purchasePrice;
+    if (companyId) await loadMastersForCompany(companyId);
+  });
+
+  $effect(() => {
+    if (!companyId) return;
+    if (mastersLoadedForCompanyId !== companyId) {
+      void loadMastersForCompany(companyId);
     }
-    if (units.length) itemLines[0].unitId = units[0].id;
-    if (saleTypes.length) header.saleTypeId = saleTypes[0].id;
-    if (purchaseTypes.length) header.purchaseTypeId = purchaseTypes[0].id;
-    nextVchNo = await voucherService.getNextVoucherNo(
-      companyId,
-      voucherType,
-      header.series
-    );
   });
 
   const updateItemLine = (i: number, field: keyof ItemLine, val: number) => {
@@ -137,14 +167,63 @@
   const grandTotal = $derived(itemTotal + bsTotal);
 
   const handleSubmit = async () => {
+    if (!companyId) {
+      error = "No active company selected. Re-open the company and try again.";
+      return;
+    }
+    if (loadingMasters || mastersLoadedForCompanyId !== companyId) {
+      error = "Loading latest masters for this company. Please try again.";
+      return;
+    }
     if (!header.partyAccountId) {
       error = "Select a party account";
+      return;
+    }
+    if (!items.length) {
+      error =
+        "No items found. Create at least one item in Masters before saving this voucher.";
       return;
     }
     if (!itemLines.length) {
       error = "Add at least one item line";
       return;
     }
+
+    const validItemIds = new Set(items.map((it) => it.id));
+    if (
+      itemLines.some(
+        (l) =>
+          !l.itemId || !validItemIds.has(l.itemId) || l.qty <= 0 || l.amount < 0
+      )
+    ) {
+      error =
+        "One or more item rows are invalid. Select valid items and keep quantity greater than zero.";
+      return;
+    }
+
+    if (bsLines.length) {
+      const validBillSundryIds = new Set(billSundries.map((b) => b.id));
+      if (
+        bsLines.some(
+          (b) => !b.billSundryId || !validBillSundryIds.has(b.billSundryId)
+        )
+      ) {
+        error =
+          "One or more bill sundry rows are invalid. Re-select the bill sundry and try again.";
+        return;
+      }
+    }
+
+    if (isSales && saleTypes.length && !header.saleTypeId) {
+      error = "Select a valid sale type.";
+      return;
+    }
+
+    if (isPurchase && purchaseTypes.length && !header.purchaseTypeId) {
+      error = "Select a valid purchase type.";
+      return;
+    }
+
     loading = true;
     error = "";
     successMsg = "";
@@ -245,7 +324,11 @@
       <div>
         <label class="text-sm font-medium block mb-1">Party Account</label>
         <select
-          bind:value={header.partyAccountId}
+          value={header.partyAccountId}
+          onchange={(e) =>
+            (header.partyAccountId = Number(
+              (e.target as HTMLSelectElement).value
+            ))}
           class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
         >
           {#each accounts as a}<option value={a.id}>{a.name}</option>{/each}
@@ -255,7 +338,11 @@
         <div>
           <label class="text-sm font-medium block mb-1">Sale Type</label>
           <select
-            bind:value={header.saleTypeId}
+            value={header.saleTypeId}
+            onchange={(e) =>
+              (header.saleTypeId = Number(
+                (e.target as HTMLSelectElement).value
+              ))}
             class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
           >
             {#each saleTypes as st}<option value={st.id}>{st.name}</option
@@ -266,7 +353,11 @@
         <div>
           <label class="text-sm font-medium block mb-1">Purchase Type</label>
           <select
-            bind:value={header.purchaseTypeId}
+            value={header.purchaseTypeId}
+            onchange={(e) =>
+              (header.purchaseTypeId = Number(
+                (e.target as HTMLSelectElement).value
+              ))}
             class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
           >
             {#each purchaseTypes as pt}<option value={pt.id}>{pt.name}</option
@@ -426,7 +517,13 @@
               <tr class="border-b border-gray-700">
                 <td class="p-2">
                   <select
-                    bind:value={bs.billSundryId}
+                    value={bs.billSundryId}
+                    onchange={(e) => {
+                      bs.billSundryId = Number(
+                        (e.target as HTMLSelectElement).value
+                      );
+                      bsLines = [...bsLines];
+                    }}
                     class="w-full p-1 bg-neutral-700 border border-gray-600 rounded text-sm"
                   >
                     {#each billSundries as b}<option value={b.id}
@@ -493,7 +590,7 @@
 
   <button
     onclick={handleSubmit}
-    disabled={loading || !header.partyAccountId}
+    disabled={loading || loadingMasters || !header.partyAccountId}
     class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold rounded"
   >
     {loading ? "Saving..." : `Save ${voucherType}`}

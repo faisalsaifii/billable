@@ -1,8 +1,48 @@
 import Database from "@tauri-apps/plugin-sql";
-import type { Voucher, VoucherAccountLine, VoucherItemLine, VoucherBillSundryLine, CreateVoucherDTO, VoucherType } from "../../types";
+import type {
+  Voucher,
+  VoucherAccountLine,
+  VoucherItemLine,
+  VoucherBillSundryLine,
+  CreateVoucherDTO,
+  VoucherType,
+} from "../../types";
 
 class VoucherService {
   private db: Database | null = null;
+
+  private parsePositiveId(value: unknown): number | null {
+    if (value === null || value === undefined || value === "") return null;
+    const n = Number(value);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }
+
+  private async idExistsInCompany(
+    table:
+      | "companies"
+      | "accounts"
+      | "items"
+      | "bill_sundries"
+      | "sale_types"
+      | "purchase_types",
+    id: number,
+    companyId?: number
+  ): Promise<boolean> {
+    if (!this.db) throw new Error("Database not initialized");
+    if (table === "companies") {
+      const rows = await this.db.select<{ cnt: number }[]>(
+        "SELECT COUNT(*) as cnt FROM companies WHERE id=?1",
+        [id]
+      );
+      return (rows[0]?.cnt || 0) > 0;
+    }
+
+    const rows = await this.db.select<{ cnt: number }[]>(
+      `SELECT COUNT(*) as cnt FROM ${table} WHERE id=?1 AND companyId=?2`,
+      [id, companyId || 0]
+    );
+    return (rows[0]?.cnt || 0) > 0;
+  }
 
   async initialize(db: Database) {
     this.db = db;
@@ -77,9 +117,13 @@ class VoucherService {
     `);
   }
 
-  async getNextVoucherNo(companyId: number, voucherType: VoucherType, series: string): Promise<string> {
+  async getNextVoucherNo(
+    companyId: number,
+    voucherType: VoucherType,
+    series: string
+  ): Promise<string> {
     if (!this.db) throw new Error("Database not initialized");
-    const rows = await this.db.select<{cnt: number}[]>(
+    const rows = await this.db.select<{ cnt: number }[]>(
       "SELECT COUNT(*) as cnt FROM vouchers WHERE companyId=?1 AND voucherType=?2 AND series=?3",
       [companyId, voucherType, series]
     );
@@ -90,55 +134,206 @@ class VoucherService {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
 
-    await this.db.execute(
-      `INSERT INTO vouchers (companyId,voucherType,series,vchNo,date,stockDate,partyAccountId,
-       materialCentreId,materialCentreToId,saleTypeId,purchaseTypeId,narration,totalAmount,createdAt,updatedAt)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)`,
-      [data.companyId, data.voucherType, data.series, data.vchNo, data.date,
-       data.stockDate||null, data.partyAccountId||null, data.materialCentreId||null,
-       data.materialCentreToId||null, data.saleTypeId||null, data.purchaseTypeId||null,
-       data.narration, data.totalAmount, now, now]
-    );
-
-    const vRows = await this.db.select<{id:number}[]>("SELECT last_insert_rowid() as id");
-    const voucherId = vRows[0]?.id || 0;
-
-    for (const line of data.accountLines) {
-      await this.db.execute(
-        `INSERT INTO voucher_account_lines (voucherId,accountId,dc,amount,shortNarration)
-         VALUES (?1,?2,?3,?4,?5)`,
-        [voucherId, line.accountId, line.dc, line.amount, line.shortNarration||null]
-      );
+    const companyId = this.parsePositiveId(data.companyId);
+    if (!companyId) throw new Error("Invalid company selected.");
+    if (!(await this.idExistsInCompany("companies", companyId))) {
+      throw new Error("Selected company does not exist.");
     }
 
-    for (const line of data.itemLines) {
-      await this.db.execute(
-        `INSERT INTO voucher_item_lines (voucherId,itemId,qty,unitId,rate,discount,amount,materialCentreId)
-         VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`,
-        [voucherId, line.itemId, line.qty, line.unitId||null, line.rate,
-         line.discount||0, line.amount, line.materialCentreId||null]
-      );
+    const partyAccountId = this.parsePositiveId(data.partyAccountId);
+    if (
+      partyAccountId &&
+      !(await this.idExistsInCompany("accounts", partyAccountId, companyId))
+    ) {
+      throw new Error("Selected party account is invalid for this company.");
     }
 
-    for (const line of data.billSundryLines) {
-      await this.db.execute(
-        `INSERT INTO voucher_bill_sundry_lines (voucherId,billSundryId,rate,amount)
-         VALUES (?1,?2,?3,?4)`,
-        [voucherId, line.billSundryId, line.rate, line.amount]
-      );
+    const saleTypeId = this.parsePositiveId(data.saleTypeId);
+    if (
+      saleTypeId &&
+      !(await this.idExistsInCompany("sale_types", saleTypeId, companyId))
+    ) {
+      throw new Error("Selected sale type is invalid for this company.");
     }
 
-    return voucherId;
+    const purchaseTypeId = this.parsePositiveId(data.purchaseTypeId);
+    if (
+      purchaseTypeId &&
+      !(await this.idExistsInCompany(
+        "purchase_types",
+        purchaseTypeId,
+        companyId
+      ))
+    ) {
+      throw new Error("Selected purchase type is invalid for this company.");
+    }
+
+    for (let i = 0; i < data.accountLines.length; i++) {
+      const line = data.accountLines[i];
+      const accountId = this.parsePositiveId(line.accountId);
+      if (!accountId) {
+        throw new Error(`Account line ${i + 1} has an invalid account.`);
+      }
+      if (!(await this.idExistsInCompany("accounts", accountId, companyId))) {
+        throw new Error(
+          `Account line ${
+            i + 1
+          } references an account not found in this company.`
+        );
+      }
+    }
+
+    for (let i = 0; i < data.itemLines.length; i++) {
+      const line = data.itemLines[i];
+      const itemId = this.parsePositiveId(line.itemId);
+      if (!itemId) {
+        throw new Error(`Item line ${i + 1} has an invalid item.`);
+      }
+      if (!(await this.idExistsInCompany("items", itemId, companyId))) {
+        throw new Error(
+          `Item line ${i + 1} references an item not found in this company.`
+        );
+      }
+    }
+
+    for (let i = 0; i < data.billSundryLines.length; i++) {
+      const line = data.billSundryLines[i];
+      const billSundryId = this.parsePositiveId(line.billSundryId);
+      if (!billSundryId) {
+        throw new Error(
+          `Bill sundry line ${i + 1} has an invalid bill sundry.`
+        );
+      }
+      if (
+        !(await this.idExistsInCompany(
+          "bill_sundries",
+          billSundryId,
+          companyId
+        ))
+      ) {
+        throw new Error(
+          `Bill sundry line ${
+            i + 1
+          } references a bill sundry not found in this company.`
+        );
+      }
+    }
+
+    try {
+      await this.db.execute("BEGIN TRANSACTION");
+      await this.db.execute(
+        `INSERT INTO vouchers (companyId,voucherType,series,vchNo,date,stockDate,partyAccountId,
+         materialCentreId,materialCentreToId,saleTypeId,purchaseTypeId,narration,totalAmount,createdAt,updatedAt)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)`,
+        [
+          companyId,
+          data.voucherType,
+          data.series,
+          data.vchNo,
+          data.date,
+          data.stockDate || null,
+          partyAccountId,
+          data.materialCentreId || null,
+          data.materialCentreToId || null,
+          saleTypeId,
+          purchaseTypeId,
+          data.narration,
+          data.totalAmount,
+          now,
+          now,
+        ]
+      );
+
+      const vRows = await this.db.select<{ id: number }[]>(
+        "SELECT last_insert_rowid() as id"
+      );
+      const voucherId = vRows[0]?.id || 0;
+
+      for (const line of data.accountLines) {
+        await this.db.execute(
+          `INSERT INTO voucher_account_lines (voucherId,accountId,dc,amount,shortNarration)
+           VALUES (?1,?2,?3,?4,?5)`,
+          [
+            voucherId,
+            this.parsePositiveId(line.accountId),
+            line.dc,
+            line.amount,
+            line.shortNarration || null,
+          ]
+        );
+      }
+
+      for (const line of data.itemLines) {
+        await this.db.execute(
+          `INSERT INTO voucher_item_lines (voucherId,itemId,qty,unitId,rate,discount,amount,materialCentreId)
+           VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`,
+          [
+            voucherId,
+            this.parsePositiveId(line.itemId),
+            line.qty,
+            line.unitId || null,
+            line.rate,
+            line.discount || 0,
+            line.amount,
+            line.materialCentreId || null,
+          ]
+        );
+      }
+
+      for (const line of data.billSundryLines) {
+        await this.db.execute(
+          `INSERT INTO voucher_bill_sundry_lines (voucherId,billSundryId,rate,amount)
+           VALUES (?1,?2,?3,?4)`,
+          [
+            voucherId,
+            this.parsePositiveId(line.billSundryId),
+            line.rate,
+            line.amount,
+          ]
+        );
+      }
+
+      await this.db.execute("COMMIT");
+
+      return voucherId;
+    } catch (err) {
+      try {
+        await this.db.execute("ROLLBACK");
+      } catch (_) {
+        // no-op: transaction may not have started
+      }
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("FOREIGN KEY constraint failed")) {
+        throw new Error(
+          "Voucher contains invalid master references (account/item/bill sundry/party). Re-open the voucher form and re-select all master fields."
+        );
+      }
+      throw err;
+    }
   }
 
-  async getVouchers(companyId: number, voucherType?: VoucherType, fromDate?: string, toDate?: string): Promise<Voucher[]> {
+  async getVouchers(
+    companyId: number,
+    voucherType?: VoucherType,
+    fromDate?: string,
+    toDate?: string
+  ): Promise<Voucher[]> {
     if (!this.db) throw new Error("Database not initialized");
     let query = "SELECT * FROM vouchers WHERE companyId=?1";
     const params: (string | number)[] = [companyId];
     let idx = 2;
-    if (voucherType) { query += ` AND voucherType=?${idx++}`; params.push(voucherType); }
-    if (fromDate)    { query += ` AND date>=?${idx++}`; params.push(fromDate); }
-    if (toDate)      { query += ` AND date<=?${idx++}`; params.push(toDate); }
+    if (voucherType) {
+      query += ` AND voucherType=?${idx++}`;
+      params.push(voucherType);
+    }
+    if (fromDate) {
+      query += ` AND date>=?${idx++}`;
+      params.push(fromDate);
+    }
+    if (toDate) {
+      query += ` AND date<=?${idx++}`;
+      params.push(toDate);
+    }
     query += " ORDER BY date DESC, id DESC";
     return await this.db.select(query, params);
   }
@@ -150,16 +345,22 @@ class VoucherService {
     billSundryLines: VoucherBillSundryLine[];
   } | null> {
     if (!this.db) throw new Error("Database not initialized");
-    const vouchers = await this.db.select<Voucher[]>("SELECT * FROM vouchers WHERE id=?1", [id]);
+    const vouchers = await this.db.select<Voucher[]>(
+      "SELECT * FROM vouchers WHERE id=?1",
+      [id]
+    );
     if (!vouchers[0]) return null;
     const accountLines = await this.db.select<VoucherAccountLine[]>(
-      "SELECT * FROM voucher_account_lines WHERE voucherId=?1", [id]
+      "SELECT * FROM voucher_account_lines WHERE voucherId=?1",
+      [id]
     );
     const itemLines = await this.db.select<VoucherItemLine[]>(
-      "SELECT * FROM voucher_item_lines WHERE voucherId=?1", [id]
+      "SELECT * FROM voucher_item_lines WHERE voucherId=?1",
+      [id]
     );
     const billSundryLines = await this.db.select<VoucherBillSundryLine[]>(
-      "SELECT * FROM voucher_bill_sundry_lines WHERE voucherId=?1", [id]
+      "SELECT * FROM voucher_bill_sundry_lines WHERE voucherId=?1",
+      [id]
     );
     return { voucher: vouchers[0], accountLines, itemLines, billSundryLines };
   }
@@ -171,9 +372,20 @@ class VoucherService {
 
   // ==================== REPORT QUERIES ====================
 
-  async getTrialBalance(companyId: number): Promise<{ accountId: number; name: string; groupName: string; debit: number; credit: number }[]> {
+  async getTrialBalance(
+    companyId: number
+  ): Promise<
+    {
+      accountId: number;
+      name: string;
+      groupName: string;
+      debit: number;
+      credit: number;
+    }[]
+  > {
     if (!this.db) throw new Error("Database not initialized");
-    return await this.db.select(`
+    return await this.db.select(
+      `
       SELECT a.id as accountId, a.name, ag.name as groupName,
         COALESCE(SUM(CASE WHEN val.dc='D' THEN val.amount ELSE 0 END), 0) +
           CASE WHEN a.openingBalanceType='Debit' THEN a.openingBalance ELSE 0 END as debit,
@@ -187,12 +399,27 @@ class VoucherService {
       GROUP BY a.id, a.name, ag.name
       HAVING debit > 0 OR credit > 0
       ORDER BY ag.name, a.name
-    `, [companyId]);
+    `,
+      [companyId]
+    );
   }
 
-  async getAccountLedger(companyId: number, accountId: number, fromDate?: string, toDate?: string): Promise<{
-    date: string; voucherType: string; vchNo: string; narration: string; debit: number; credit: number; balance: number
-  }[]> {
+  async getAccountLedger(
+    companyId: number,
+    accountId: number,
+    fromDate?: string,
+    toDate?: string
+  ): Promise<
+    {
+      date: string;
+      voucherType: string;
+      vchNo: string;
+      narration: string;
+      debit: number;
+      credit: number;
+      balance: number;
+    }[]
+  > {
     if (!this.db) throw new Error("Database not initialized");
     let query = `
       SELECT v.date, v.voucherType, v.vchNo, v.narration,
@@ -204,20 +431,47 @@ class VoucherService {
     `;
     const params: (string | number)[] = [companyId, accountId];
     let idx = 3;
-    if (fromDate) { query += ` AND v.date>=?${idx++}`; params.push(fromDate); }
-    if (toDate)   { query += ` AND v.date<=?${idx++}`; params.push(toDate); }
+    if (fromDate) {
+      query += ` AND v.date>=?${idx++}`;
+      params.push(fromDate);
+    }
+    if (toDate) {
+      query += ` AND v.date<=?${idx++}`;
+      params.push(toDate);
+    }
     query += " ORDER BY v.date ASC, v.id ASC";
-    const rows = await this.db.select<{date:string;voucherType:string;vchNo:string;narration:string;debit:number;credit:number}[]>(query, params);
+    const rows = await this.db.select<
+      {
+        date: string;
+        voucherType: string;
+        vchNo: string;
+        narration: string;
+        debit: number;
+        credit: number;
+      }[]
+    >(query, params);
     let balance = 0;
-    return rows.map(r => {
+    return rows.map((r) => {
       balance += r.debit - r.credit;
       return { ...r, balance };
     });
   }
 
-  async getStockStatus(companyId: number): Promise<{ itemId: number; name: string; groupName: string; inQty: number; outQty: number; closingQty: number }[]> {
+  async getStockStatus(
+    companyId: number
+  ): Promise<
+    {
+      itemId: number;
+      name: string;
+      groupName: string;
+      inQty: number;
+      outQty: number;
+      closingQty: number;
+    }[]
+  > {
     if (!this.db) throw new Error("Database not initialized");
-    return await this.db.select(`
+    return await this.db.select(
+      `
       SELECT i.id as itemId, i.name,
         COALESCE(ig.name,'Unknown') as groupName,
         i.openingStock +
@@ -235,7 +489,9 @@ class VoucherService {
       WHERE i.companyId = ?1 AND i.active = 1
       GROUP BY i.id, i.name, ig.name
       ORDER BY ig.name, i.name
-    `, [companyId]);
+    `,
+      [companyId]
+    );
   }
 }
 
