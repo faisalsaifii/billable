@@ -361,7 +361,7 @@
       >
         <!-- Top Header Row: GSTIN | Title | Original Copy -->
         <div
-          class="top-header grid grid-cols-3 gap-4 mb-4 text-sm border-b border-black pb-2"
+          class="top-header bg-white grid grid-cols-3 gap-4 mb-4 text-sm border-b border-black pb-2"
         >
           <div class="text-left">
             <span class="font-semibold">GSTIN:</span>
@@ -373,7 +373,9 @@
 
         <!-- Company Header -->
         {#if !config?.prePrintedHeader}
-          <div class="company-header mb-4 border-b-2 border-black pb-4">
+          <div
+            class="company-header bg-white mb-4 border-b-2 border-black pb-4"
+          >
             <div class="flex items-start gap-4">
               {#if config?.printLogo && config?.logoPath}
                 <div class="logo flex-shrink-0">
@@ -413,10 +415,10 @@
 
         <!-- Buyer & Invoice Details: Two Column Layout -->
         <div
-          class="details-section grid grid-cols-2 gap-6 mb-6 text-sm border border-black"
+          class="details-section bg-white grid grid-cols-2 gap-6 mb-6 text-sm border border-black"
         >
           <!-- Left: Buyer Details -->
-          <div class="p-3 border-r border-black">
+          <div class="bg-white p-3 border-r border-black">
             <div class="font-bold mb-2">Billed To (BUYER):</div>
             {#if partyAccount}
               <div class="font-semibold text-base mb-1">
@@ -438,7 +440,7 @@
           </div>
 
           <!-- Right: Invoice Details -->
-          <div class="p-3">
+          <div class="bg-white p-3">
             <div class="space-y-1">
               <div class="grid grid-cols-2">
                 <span class="font-semibold">Invoice No:</span>
@@ -489,7 +491,7 @@
 
         <!-- Item Lines -->
         {#if itemLines.length > 0}
-          <table class="w-full mb-4 border border-black text-xs">
+          <table class="w-full mb-4 border border-black text-xs bg-white">
             <thead>
               <tr class="bg-gray-200 border-b border-black">
                 <th class="text-left p-2 border-r border-black w-8">S.N</th>
@@ -515,35 +517,37 @@
                 >
               </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-white">
               {#each itemLines as line, i}
-                <tr class="border-b border-gray-300">
-                  <td class="p-2 border-r border-gray-300 text-center"
+                <tr class="bg-white border-b border-gray-300">
+                  <td class="bg-white p-2 border-r border-gray-300 text-center"
                     >{i + 1}</td
                   >
-                  <td class="p-2 border-r border-gray-300">{line.itemName}</td>
-                  <td class="p-2 border-r border-gray-300 text-center"
+                  <td class="bg-white p-2 border-r border-gray-300"
+                    >{line.itemName}</td
+                  >
+                  <td class="bg-white p-2 border-r border-gray-300 text-center"
                     >{line.hsnCode}</td
                   >
-                  <td class="text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-center p-2 border-r border-gray-300"
                     >{line.qty.toFixed(2)}</td
                   >
-                  <td class="text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-center p-2 border-r border-gray-300"
                     >{line.unitName}</td
                   >
-                  <td class="text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-2 border-r border-gray-300"
                     >{formatCurrency(line.rate)}</td
                   >
-                  <td class="text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-2 border-r border-gray-300"
                     >{line.discountPercent?.toFixed(2)} %</td
                   >
-                  <td class="text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-2 border-r border-gray-300"
                     >{formatCurrency(line.rate * line.qty - line.discount)}</td
                   >
-                  <td class="text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-center p-2 border-r border-gray-300"
                     >{line.gstRate}%</td
                   >
-                  <td class="text-right p-2"
+                  <td class="bg-white text-right p-2"
                     >{formatCurrency(line.taxableAmount || 0)}</td
                   >
                 </tr>
@@ -572,7 +576,7 @@
           </table>
 
           <!-- GST Breakdown Table -->
-          <table class="w-full mb-4 border border-black text-xs">
+          <table class="w-full mb-4 border border-black text-xs bg-white">
             <thead>
               <tr class="bg-gray-200">
                 <th class="text-center p-2 border-r border-black" rowspan="2"
@@ -600,28 +604,28 @@
                 >
               </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-white">
               {#each calculateGSTBreakdown() as gst}
-                <tr class="border-t border-gray-300">
-                  <td class="text-center p-2 border-r border-gray-300"
+                <tr class="bg-white border-t border-gray-300">
+                  <td class="bg-white text-center p-2 border-r border-gray-300"
                     >{gst.gstRate.toFixed(2)}</td
                   >
-                  <td class="text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-2 border-r border-gray-300"
                     >{formatCurrency(gst.taxableAmount)}</td
                   >
-                  <td class="text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-center p-2 border-r border-gray-300"
                     >{(gst.gstRate / 2).toFixed(2)}</td
                   >
-                  <td class="text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-2 border-r border-gray-300"
                     >{formatCurrency(gst.cgstAmount)}</td
                   >
-                  <td class="text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-center p-2 border-r border-gray-300"
                     >{(gst.gstRate / 2).toFixed(2)}</td
                   >
-                  <td class="text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-2 border-r border-gray-300"
                     >{formatCurrency(gst.sgstAmount)}</td
                   >
-                  <td class="text-right p-2"
+                  <td class="bg-white text-right p-2"
                     >{formatCurrency(gst.totalAmount)}</td
                   >
                 </tr>
@@ -650,7 +654,7 @@
 
           <!-- Total Amount -->
           <div
-            class="grid grid-cols-2 gap-4 mb-4 text-sm border-t-2 border-black pt-2"
+            class="bg-white grid grid-cols-2 gap-4 mb-4 text-sm border-t-2 border-black pt-2"
           >
             <div>
               <div class="mb-1">
@@ -702,7 +706,7 @@
 
         <!-- Account Lines (for non-inventory vouchers) -->
         {#if accountLines.length > 0 && itemLines.length === 0}
-          <table class="w-full mb-6 border border-black text-sm">
+          <table class="w-full mb-6 border border-black text-sm bg-white">
             <thead>
               <tr class="bg-gray-100 border-b border-black">
                 <th class="text-left p-2 border-r border-black">S.No</th>
@@ -711,11 +715,11 @@
                 <th class="text-right p-2">Amount</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-white">
               {#each accountLines as line, i}
-                <tr class="border-b border-gray-300">
-                  <td class="p-2 border-r border-gray-300">{i + 1}</td>
-                  <td class="p-2 border-r border-gray-300">
+                <tr class="bg-white border-b border-gray-300">
+                  <td class="bg-white p-2 border-r border-gray-300">{i + 1}</td>
+                  <td class="bg-white p-2 border-r border-gray-300">
                     Account {line.accountId}
                     {#if line.shortNarration}
                       <div class="text-xs text-gray-600">
@@ -723,10 +727,12 @@
                       </div>
                     {/if}
                   </td>
-                  <td class="text-center p-2 border-r border-gray-300"
-                    >{line.dc}</td
+                  <td class="bg-white text-center p-2 border-r border-gray-300">
+                    {line.dc}</td
                   >
-                  <td class="text-right p-2">{formatCurrency(line.amount)}</td>
+                  <td class="bg-white text-right p-2"
+                    >{formatCurrency(line.amount)}</td
+                  >
                 </tr>
               {/each}
             </tbody>
@@ -735,14 +741,16 @@
 
         <!-- Narration -->
         {#if config?.printNarration !== false && voucher.narration}
-          <div class="narration mb-4 text-sm">
+          <div class="narration bg-white mb-4 text-sm">
             <div class="font-semibold mb-1">Narration:</div>
             <div class="italic">{voucher.narration}</div>
           </div>
         {/if}
 
         <!-- Terms and Conditions & Balance Section -->
-        <div class="grid grid-cols-2 gap-6 mb-4 border-t border-black pt-4">
+        <div
+          class="bg-white grid grid-cols-2 gap-6 mb-4 border-t border-black pt-4"
+        >
           <!-- Left: Terms & Conditions -->
           <div class="text-xs">
             {#if config?.termsAndConditions}
@@ -805,6 +813,96 @@
 <style>
   .invoice-container {
     --print-scale: 1;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Force white backgrounds for all invoice elements */
+  .invoice-container * {
+    background-color: transparent;
+    color: #000000 !important;
+  }
+
+  .invoice-container .bg-white,
+  .invoice-print-frame {
+    background-color: #ffffff !important;
+  }
+
+  .invoice-container table {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .invoice-container tbody {
+    background-color: #ffffff !important;
+  }
+
+  .invoice-container tbody tr {
+    background-color: #ffffff !important;
+  }
+
+  .invoice-container tbody td {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .invoice-container thead th {
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .invoice-container tfoot td {
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  /* Force all borders to be black */
+  .invoice-container .border,
+  .invoice-container .border-black,
+  .invoice-container .border-gray-300,
+  .invoice-container .border-t,
+  .invoice-container .border-b,
+  .invoice-container .border-r,
+  .invoice-container .border-l,
+  .invoice-container .border-t-2,
+  .invoice-container .border-b-2 {
+    border-color: #000000 !important;
+  }
+
+  /* Gray backgrounds for headers/footers */
+  .invoice-container .bg-gray-100 {
+    background-color: #f3f4f6 !important;
+  }
+
+  .invoice-container .bg-gray-200 {
+    background-color: #e5e7eb !important;
+  }
+
+  .invoice-container thead tr {
+    background-color: #e5e7eb !important;
+  }
+
+  .invoice-container tfoot tr {
+    background-color: #e5e7eb !important;
+  }
+
+  /* Text colors */
+  .invoice-container .text-gray-500 {
+    color: #6b7280 !important;
+  }
+
+  .invoice-container .text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  .invoice-container .text-red-600 {
+    color: #dc2626 !important;
+  }
+
+  .invoice-container .text-black {
+    color: #000000 !important;
   }
 
   /* Force standard colors for PDF export (html2canvas doesn't support oklch) */
