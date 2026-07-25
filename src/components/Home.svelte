@@ -28,5 +28,13 @@
       >
       <span>a company</span>
     </div>
+    <div class="flex items-center gap-1.5 text-xs mt-3 text-neutral-500">
+      <span>Press</span>
+      <kbd
+        class="px-1.5 py-0.5 rounded bg-neutral-800 border border-neutral-700 font-mono"
+        >F1</kbd
+      >
+      <span>for keyboard shortcuts</span>
+    </div>
   </div>
 </div>
