@@ -92,7 +92,7 @@
       // Load document configuration
       config = await documentConfigService.getDocConfig(
         voucher.companyId,
-        voucher.voucherType
+        voucher.voucherType,
       );
 
       // Load voucher lines
@@ -159,7 +159,7 @@
     if (!invoiceRef) {
       console.error("Missing invoiceRef - DOM element not ready");
       alert(
-        "Invoice not ready for export. Please wait a moment and try again."
+        "Invoice not ready for export. Please wait a moment and try again.",
       );
       return;
     }
@@ -168,7 +168,10 @@
       exporting = true;
       console.log("Starting PDF export...");
 
-      // Small delay to ensure DOM is fully rendered
+      // Add class to force standard colors (html2canvas doesn't support oklch)
+      invoiceRef.classList.add("pdf-export-mode");
+
+      // Small delay to ensure DOM is fully rendered with new styles
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Capture the invoice as canvas
@@ -177,6 +180,51 @@
         backgroundColor: "#ffffff",
         logging: false,
         useCORS: true,
+        onclone: (clonedDoc) => {
+          // Inject a style tag that overrides all oklch colors with standard hex
+          const styleOverride = clonedDoc.createElement("style");
+          styleOverride.textContent = `
+            * {
+              color: inherit !important;
+              border-color: currentColor !important;
+            }
+            .invoice-container, .invoice-container * {
+              color: #000000 !important;
+              background-color: transparent !important;
+            }
+            .bg-white, .invoice-container {
+              background-color: #ffffff !important;
+            }
+            .bg-gray-100 {
+              background-color: #f3f4f6 !important;
+            }
+            .bg-gray-200 {
+              background-color: #e5e7eb !important;
+            }
+            .text-gray-500 {
+              color: #6b7280 !important;
+            }
+            .text-gray-600 {
+              color: #4b5563 !important;
+            }
+            .text-red-600 {
+              color: #dc2626 !important;
+            }
+            .border-black {
+              border-color: #000000 !important;
+            }
+            .border-gray-300 {
+              border-color: #d1d5db !important;
+            }
+            table {
+              border-color: #000000 !important;
+            }
+            th, td {
+              border-color: inherit !important;
+            }
+          `;
+          clonedDoc.head.appendChild(styleOverride);
+        },
       });
 
       console.log("Canvas created:", canvas.width, "x", canvas.height);
@@ -205,9 +253,13 @@
     } catch (err) {
       console.error("Error exporting PDF:", err);
       alert(
-        `Failed to export PDF: ${err instanceof Error ? err.message : "Unknown error"}`
+        `Failed to export PDF: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
     } finally {
+      // Remove the export mode class
+      if (invoiceRef) {
+        invoiceRef.classList.remove("pdf-export-mode");
+      }
       exporting = false;
     }
   }
@@ -402,7 +454,7 @@
                   <span class="font-semibold">Stock Date:</span>
                   <span
                     >{new Date(voucher.stockDate).toLocaleDateString(
-                      "en-IN"
+                      "en-IN",
                     )}</span
                   >
                 </div>
@@ -589,7 +641,7 @@
                 >
                 <td class="text-right p-2"
                   >{formatCurrency(
-                    getTotalTaxableAmount() + getTotalGSTAmount()
+                    getTotalTaxableAmount() + getTotalGSTAmount(),
                   )}</td
                 >
               </tr>
@@ -753,6 +805,70 @@
 <style>
   .invoice-container {
     --print-scale: 1;
+  }
+
+  /* Force standard colors for PDF export (html2canvas doesn't support oklch) */
+  .pdf-export-mode {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+
+  .pdf-export-mode * {
+    /* Reset any oklch colors to standard equivalents */
+    border-color: inherit !important;
+  }
+
+  /* Override Tailwind colors with standard hex values during export */
+  .pdf-export-mode .text-neutral-400 {
+    color: #a3a3a3 !important;
+  }
+
+  .pdf-export-mode .bg-green-600 {
+    background-color: #16a34a !important;
+  }
+
+  .pdf-export-mode .bg-green-500 {
+    background-color: #22c55e !important;
+  }
+
+  .pdf-export-mode .text-white {
+    color: #ffffff !important;
+  }
+
+  .pdf-export-mode .bg-white {
+    background-color: #ffffff !important;
+  }
+
+  .pdf-export-mode .text-black {
+    color: #000000 !important;
+  }
+
+  .pdf-export-mode .bg-gray-200 {
+    background-color: #e5e7eb !important;
+  }
+
+  .pdf-export-mode .bg-gray-100 {
+    background-color: #f3f4f6 !important;
+  }
+
+  .pdf-export-mode .text-gray-500 {
+    color: #6b7280 !important;
+  }
+
+  .pdf-export-mode .text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  .pdf-export-mode .border-gray-300 {
+    border-color: #d1d5db !important;
+  }
+
+  .pdf-export-mode .text-red-600 {
+    color: #dc2626 !important;
+  }
+
+  .pdf-export-mode .border-black {
+    border-color: #000000 !important;
   }
 
   @media print {
