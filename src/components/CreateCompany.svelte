@@ -3,6 +3,8 @@
   import type { CreateCompanyDTO } from "../types";
   import Input from "./Input.svelte";
   import SuperUserModal from "./SuperUserModal.svelte";
+  import { toast } from "../lib/stores/toast";
+  import { navigation } from "../lib/stores/navigation";
 
   let loading = false;
   let error = "";
@@ -72,7 +74,10 @@
       // Show SuperUser creation modal
       showSuperUserModal = true;
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to create company";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create company";
+      error = errorMessage;
+      toast.show(errorMessage, "error", 5000);
       console.error("Error:", err);
     } finally {
       loading = false;
@@ -80,6 +85,12 @@
   };
 
   const handleSuperUserCreated = () => {
+    // Show success message
+    toast.show("Company created successfully!", "success", 4000);
+
+    // Navigate to list companies page
+    navigation.navigateTo("COMPANY_DETAILS");
+
     // Reset form
     formData = {
       name: "",

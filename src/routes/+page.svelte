@@ -12,21 +12,11 @@
   import Printing from "../components/Printing.svelte";
   import DataManagement from "../components/DataManagement.svelte";
   import KeyboardShortcuts from "../components/KeyboardShortcuts.svelte";
+  import Toast from "../components/Toast.svelte";
   import { session } from "../lib/stores/session";
+  import { navigation } from "../lib/stores/navigation";
 
-  type View =
-    | "CREATE_COMPANY"
-    | "COMPANY_DETAILS"
-    | "HOME"
-    | "COMPANY_OPEN"
-    | "CONFIGURATION"
-    | "MASTERS"
-    | "UTILITIES"
-    | "TRANSACTIONS"
-    | "DISPLAY"
-    | "PRINTING"
-    | "DATA_MANAGEMENT";
-  let currentView: View = $state("HOME");
+  let currentView = $derived($navigation);
 
   let isCompanyOpen = $state(false);
   let activeSubmenu: string = $state("");
@@ -51,57 +41,57 @@
       switch (e.key.toLowerCase()) {
         case "f":
           e.preventDefault();
-          currentView = "CONFIGURATION";
+          navigation.navigateTo("CONFIGURATION");
           activeSubmenu = "Configuration";
           break;
         case "m":
           e.preventDefault();
-          currentView = "MASTERS";
+          navigation.navigateTo("MASTERS");
           activeSubmenu = "Masters";
           break;
         case "u":
           e.preventDefault();
-          currentView = "UTILITIES";
+          navigation.navigateTo("UTILITIES");
           activeSubmenu = "Utilities";
           break;
         case "l":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Account Ledger";
           break;
         case "g":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Item Ledger";
           break;
         case "t":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Trial Balance";
           break;
         case "b":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Balance Sheet";
           break;
         case "s":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Stock Status";
           break;
         case "a":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Accounts Monthly Summary";
           break;
         case "i":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "Item Monthly Summary";
           break;
         case "e":
           e.preventDefault();
-          currentView = "DATA_MANAGEMENT";
+          navigation.navigateTo("DATA_MANAGEMENT");
           activeSubmenu = "Data Management";
           break;
         case "n":
@@ -121,44 +111,44 @@
         switch (e.key) {
           case "F1":
             e.preventDefault();
-            currentView = "MASTERS";
+            navigation.navigateTo("MASTERS");
             activeSubmenu = "Masters";
             // Add New Account - placeholder
             break;
           case "F2":
             e.preventDefault();
-            currentView = "MASTERS";
+            navigation.navigateTo("MASTERS");
             activeSubmenu = "Masters";
             // Add Item - placeholder
             break;
           case "F3":
             e.preventDefault();
-            currentView = "TRANSACTIONS";
+            navigation.navigateTo("TRANSACTIONS");
             activeSubmenu = "Sales";
             break;
           case "F5":
             e.preventDefault();
-            currentView = "TRANSACTIONS";
+            navigation.navigateTo("TRANSACTIONS");
             activeSubmenu = "Payment";
             break;
           case "F6":
             e.preventDefault();
-            currentView = "TRANSACTIONS";
+            navigation.navigateTo("TRANSACTIONS");
             activeSubmenu = "Receipt";
             break;
           case "F7":
             e.preventDefault();
-            currentView = "TRANSACTIONS";
+            navigation.navigateTo("TRANSACTIONS");
             activeSubmenu = "Journal";
             break;
           case "F8":
             e.preventDefault();
-            currentView = "TRANSACTIONS";
+            navigation.navigateTo("TRANSACTIONS");
             activeSubmenu = "Sales";
             break;
           case "F9":
             e.preventDefault();
-            currentView = "TRANSACTIONS";
+            navigation.navigateTo("TRANSACTIONS");
             activeSubmenu = "Purchase";
             break;
         }
@@ -170,7 +160,7 @@
       switch (e.key.toLowerCase()) {
         case "v":
           e.preventDefault();
-          currentView = "DISPLAY";
+          navigation.navigateTo("DISPLAY");
           activeSubmenu = "VAT Summary";
           break;
         case "p":
@@ -214,9 +204,9 @@
     const unsub = session.subscribe((s) => {
       isCompanyOpen = s.companyId !== null;
       if (isCompanyOpen) {
-        currentView = "COMPANY_OPEN";
+        navigation.navigateTo("COMPANY_OPEN");
       } else {
-        currentView = "HOME";
+        navigation.navigateTo("HOME");
         activeSubmenu = "";
       }
     });
@@ -233,14 +223,14 @@
         {
           text: "Create Company",
           onclick: () => {
-            currentView = "CREATE_COMPANY";
+            navigation.navigateTo("CREATE_COMPANY");
             activeSubmenu = "Create Company";
           },
         },
         {
           text: "Open Company",
           onclick: () => {
-            currentView = "COMPANY_DETAILS";
+            navigation.navigateTo("COMPANY_DETAILS");
             activeSubmenu = "Open Company";
           },
         },
@@ -269,21 +259,21 @@
             {
               text: "Configuration",
               onclick: () => {
-                currentView = "CONFIGURATION";
+                navigation.navigateTo("CONFIGURATION");
                 activeSubmenu = "Configuration";
               },
             },
             {
               text: "Masters",
               onclick: () => {
-                currentView = "MASTERS";
+                navigation.navigateTo("MASTERS");
                 activeSubmenu = "Masters";
               },
             },
             {
               text: "Utilities",
               onclick: () => {
-                currentView = "UTILITIES";
+                navigation.navigateTo("UTILITIES");
                 activeSubmenu = "Utilities";
               },
             },
@@ -315,98 +305,98 @@
             {
               text: "Sales",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Sales";
               },
             },
             {
               text: "Sales Return",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Sales Return";
               },
             },
             {
               text: "Purchase",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Purchase";
               },
             },
             {
               text: "Purchase Return",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Purchase Return";
               },
             },
             {
               text: "Payment",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Payment";
               },
             },
             {
               text: "Receipt",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Receipt";
               },
             },
             {
               text: "Journal",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Journal";
               },
             },
             {
               text: "Contra",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Contra";
               },
             },
             {
               text: "Debit Note",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Debit Note";
               },
             },
             {
               text: "Credit Note",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Credit Note";
               },
             },
             {
               text: "Stock Transfer",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Stock Transfer";
               },
             },
             {
               text: "Forms Received",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Forms Received";
               },
             },
             {
               text: "Forms Issued",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "Forms Issued";
               },
             },
             {
               text: "VAT Journal",
               onclick: () => {
-                currentView = "TRANSACTIONS";
+                navigation.navigateTo("TRANSACTIONS");
                 activeSubmenu = "VAT Journal";
               },
             },
@@ -427,21 +417,21 @@
             {
               text: "Trial Balance",
               onclick: () => {
-                currentView = "DISPLAY";
+                navigation.navigateTo("DISPLAY");
                 activeSubmenu = "Trial Balance";
               },
             },
             {
               text: "Account Ledger",
               onclick: () => {
-                currentView = "DISPLAY";
+                navigation.navigateTo("DISPLAY");
                 activeSubmenu = "Account Ledger";
               },
             },
             {
               text: "Stock Status",
               onclick: () => {
-                currentView = "DISPLAY";
+                navigation.navigateTo("DISPLAY");
                 activeSubmenu = "Stock Status";
               },
             },
@@ -456,7 +446,7 @@
             {
               text: "Printing",
               onclick: () => {
-                currentView = "PRINTING";
+                navigation.navigateTo("PRINTING");
                 activeSubmenu = "Printing";
               },
             },
@@ -472,7 +462,7 @@
             {
               text: "Data Management",
               onclick: () => {
-                currentView = "DATA_MANAGEMENT";
+                navigation.navigateTo("DATA_MANAGEMENT");
                 activeSubmenu = "Data Management";
               },
             },
@@ -490,7 +480,7 @@
   >
     <Button
       onclick={() => {
-        currentView = "HOME";
+        navigation.navigateTo("HOME");
         activeSubmenu = "";
       }}
       variant="ghost">Home</Button
@@ -512,8 +502,7 @@
     <Button
       onclick={() => (showShortcuts = true)}
       variant="ghost"
-      class="gap-2"
-      title="Keyboard Shortcuts (F1)"
+      styles="gap-2"
     >
       <svg
         class="w-4 h-4"
@@ -541,7 +530,7 @@
     {/if}
 
     {#if currentView == "COMPANY_OPEN"}
-      <CompanyStatus onClose={() => (currentView = "HOME")} />
+      <CompanyStatus onClose={() => navigation.navigateTo("HOME")} />
     {/if}
 
     {#if currentView == "HOME"}
@@ -582,4 +571,7 @@
 
   <!-- Keyboard Shortcuts Modal -->
   <KeyboardShortcuts bind:show={showShortcuts} />
+
+  <!-- Toast Notifications -->
+  <Toast />
 </main>

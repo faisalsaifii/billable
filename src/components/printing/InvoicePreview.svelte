@@ -357,350 +357,298 @@
     >
       <div
         bind:this={invoiceRef}
-        class="invoice-container bg-white text-black p-8 font-sans print:p-4"
+        class="invoice-container bg-white text-black p-4 font-sans print:p-4 text-xs"
       >
-        <!-- Top Header Row: GSTIN | Title | Original Copy -->
+        <!-- Top Header Row: GSTIN | Title | Original/Copy -->
         <div
-          class="top-header bg-white grid grid-cols-3 gap-4 mb-4 text-sm border-b border-black pb-2"
+          class="top-header bg-white flex justify-between items-start mb-2 text-xs"
         >
           <div class="text-left">
-            <span class="font-semibold">GSTIN:</span>
-            {company.gstNo || "N/A"}
+            <span class="font-semibold">GSTIN : {company.gstNo || "N/A"}</span>
           </div>
-          <div class="text-center font-bold text-lg">{getInvoiceTitle()}</div>
-          <div class="text-right font-semibold">Original Copy</div>
+          <div class="text-right italic">Original/Copy</div>
         </div>
 
         <!-- Company Header -->
         {#if !config?.prePrintedHeader}
-          <div
-            class="company-header bg-white mb-4 border-b-2 border-black pb-4"
-          >
-            <div class="flex items-start gap-4">
-              {#if config?.printLogo && config?.logoPath}
-                <div class="logo flex-shrink-0">
-                  <img
-                    src={config.logoPath}
-                    alt="Company Logo"
-                    style="width: {config.logoWidth}px; height: {config.logoHeight}px;"
-                  />
-                </div>
+          <div class="company-header bg-white mb-3 pb-3 border-b border-black">
+            <div class="text-center">
+              {#if config?.printCompanyName !== false}
+                <h1 class="text-2xl font-bold mb-1">{getInvoiceTitle()}</h1>
+                <h2 class="text-xl font-bold mb-2">{company.name}</h2>
               {/if}
 
-              <div class="flex-grow text-center">
-                {#if config?.printCompanyName !== false}
-                  <h1 class="text-3xl font-bold mb-2">{company.name}</h1>
-                {/if}
-
-                {#if config?.printCompanyAddress !== false}
-                  <div class="text-sm mb-1">
-                    {#if company.address1}<div>{company.address1}</div>{/if}
-                    {#if company.address2}<div>{company.address2}</div>{/if}
+              {#if config?.printCompanyAddress !== false}
+                <div class="text-xs">
+                  <div>
+                    {#if company.address1}{company.address1}{/if}
+                  </div>
+                  <div>
+                    {#if company.address2}{company.address2},
+                    {/if}
                     {#if company.address3}{company.address3},
                     {/if}
                     {#if company.address4}{company.address4}{/if}
                   </div>
-                {/if}
-
-                {#if config?.printCompanyPhone}
-                  <div class="text-sm">
-                    {#if company.telNo}Tel: {company.telNo}{/if}
-                    {#if company.email}, Email: {company.email}{/if}
-                  </div>
-                {/if}
-              </div>
+                </div>
+              {/if}
             </div>
           </div>
         {/if}
 
-        <!-- Buyer & Invoice Details: Two Column Layout -->
+        <!-- Invoice & Transport Details: Two Column Layout -->
         <div
-          class="details-section bg-white grid grid-cols-2 gap-6 mb-6 text-sm border border-black"
+          class="details-section bg-white grid grid-cols-2 gap-0 mb-3 text-xs border border-black"
         >
-          <!-- Left: Buyer Details -->
-          <div class="bg-white p-3 border-r border-black">
-            <div class="font-bold mb-2">Billed To (BUYER):</div>
+          <!-- Left: Invoice Details -->
+          <div class="bg-white p-2 border-r border-black">
+            <div class="space-y-0.5">
+              <div class="flex">
+                <span class="w-32">Invoice No.</span>
+                <span class="mr-2">:</span>
+                <span>{voucher.series}/{voucher.vchNo}</span>
+              </div>
+              <div class="flex">
+                <span class="w-32">Dated</span>
+                <span class="mr-2">:</span>
+                <span>{new Date(voucher.date).toLocaleDateString("en-IN")}</span
+                >
+              </div>
+              <div class="flex">
+                <span class="w-32">Place of Supply</span>
+                <span class="mr-2">:</span>
+                <span>{company.state}</span>
+              </div>
+              <div class="flex">
+                <span class="w-32">Reverse Charge</span>
+                <span class="mr-2">:</span>
+                <span>N</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Transport Details -->
+          <div class="bg-white p-2">
+            <div class="space-y-0.5">
+              <div class="flex">
+                <span class="w-28">GR/RR No.</span>
+                <span class="mr-2">:</span>
+                <span></span>
+              </div>
+              <div class="flex">
+                <span class="w-28">Transport</span>
+                <span class="mr-2">:</span>
+                <span>Self</span>
+              </div>
+              <div class="flex">
+                <span class="w-28">Vehicle No.</span>
+                <span class="mr-2">:</span>
+                <span></span>
+              </div>
+              <div class="flex">
+                <span class="w-28">Station</span>
+                <span class="mr-2">:</span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billed To & Shipped To: Two Column Layout -->
+        <div
+          class="details-section bg-white grid grid-cols-2 gap-0 mb-3 text-xs border border-black"
+        >
+          <!-- Left: Billed To -->
+          <div class="bg-white p-2 border-r border-black">
+            <div class="font-bold mb-1 underline">Billed to :</div>
             {#if partyAccount}
-              <div class="font-semibold text-base mb-1">
+              <div class="font-semibold mb-0.5">
                 {partyAccount.name}
               </div>
-              {#if partyAccount.printName && partyAccount.printName !== partyAccount.name}
-                <div class="text-sm mb-1">{partyAccount.printName}</div>
-              {/if}
               {#if partyAccount.description}
-                <div class="text-sm mb-1">{partyAccount.description}</div>
+                <div class="mb-1">{partyAccount.description}</div>
               {/if}
-              <div class="mt-2">
-                <div>PARTY GSTIN: <span class="font-medium">N/A</span></div>
-                <div>PARTY PAN NO: <span class="font-medium">N/A</span></div>
-              </div>
+              <div>GSTIN / UIN :</div>
             {:else}
               <div class="text-gray-500 italic">No party selected</div>
             {/if}
           </div>
 
-          <!-- Right: Invoice Details -->
-          <div class="bg-white p-3">
-            <div class="space-y-1">
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">Invoice No:</span>
-                <span>{voucher.series}/{voucher.vchNo}</span>
+          <!-- Right: Shipped To -->
+          <div class="bg-white p-2">
+            <div class="font-bold mb-1 underline">Shipped to :</div>
+            {#if partyAccount}
+              <div class="font-semibold mb-0.5">
+                {partyAccount.name}
               </div>
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">Date:</span>
-                <span>{new Date(voucher.date).toLocaleDateString("en-IN")}</span
-                >
-              </div>
-              {#if voucher.stockDate}
-                <div class="grid grid-cols-2">
-                  <span class="font-semibold">Stock Date:</span>
-                  <span
-                    >{new Date(voucher.stockDate).toLocaleDateString(
-                      "en-IN",
-                    )}</span
-                  >
-                </div>
+              {#if partyAccount.description}
+                <div class="mb-1">{partyAccount.description}</div>
               {/if}
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">Place of Supply:</span>
-                <span>{company.state}</span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">Reverse Charge:</span>
-                <span>Not Applicable</span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">GR/LR No:</span>
-                <span></span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">Transport:</span>
-                <span></span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">Vehicle No:</span>
-                <span></span>
-              </div>
-              <div class="grid grid-cols-2">
-                <span class="font-semibold">E Way Bill No:</span>
-                <span></span>
-              </div>
-            </div>
+              <div>GSTIN / UIN :</div>
+            {:else}
+              <div class="text-gray-500 italic">No party selected</div>
+            {/if}
           </div>
         </div>
 
         <!-- Item Lines -->
         {#if itemLines.length > 0}
-          <table class="w-full mb-4 border border-black text-xs bg-white">
+          <table class="w-full mb-2 border border-black text-xs bg-white">
             <thead>
-              <tr class="bg-gray-200 border-b border-black">
-                <th class="text-left p-2 border-r border-black w-8">S.N</th>
-                <th class="text-left p-2 border-r border-black"
+              <tr class="bg-white border-b border-black">
+                <th class="text-center p-1.5 border-r border-black w-10"
+                  >S.N.</th
+                >
+                <th class="text-left p-1.5 border-r border-black"
                   >Description of Goods</th
                 >
-                <th class="text-center p-2 border-r border-black w-20"
-                  >HSN/SAC Code</th
+                <th class="text-center p-1.5 border-r border-black w-20"
+                  >HSN/SAC<br />Code</th
                 >
-                <th class="text-center p-2 border-r border-black w-16">QTY</th>
-                <th class="text-center p-2 border-r border-black w-16">UNIT</th>
-                <th class="text-right p-2 border-r border-black w-20"
-                  >RATE<br />(₹)</th
+                <th class="text-center p-1.5 border-r border-black w-16"
+                  >Qty.</th
                 >
-                <th class="text-right p-2 border-r border-black w-16">Disc %</th
+                <th class="text-center p-1.5 border-r border-black w-14"
+                  >Unit</th
                 >
-                <th class="text-right p-2 border-r border-black w-20"
-                  >PRICE<br />(₹)</th
+                <th class="text-right p-1.5 border-r border-black w-20"
+                  >Price</th
                 >
-                <th class="text-center p-2 border-r border-black w-16">GST %</th
-                >
-                <th class="text-right p-2 w-24">TAXABLE<br />AMOUNT<br />(₹)</th
-                >
+                <th class="text-right p-1.5 w-24">Amount( ₹ )</th>
               </tr>
             </thead>
             <tbody class="bg-white">
               {#each itemLines as line, i}
-                <tr class="bg-white border-b border-gray-300">
-                  <td class="bg-white p-2 border-r border-gray-300 text-center"
-                    >{i + 1}</td
+                <tr class="bg-white border-b border-black">
+                  <td class="bg-white p-1.5 border-r border-black text-center"
+                    >{i + 1}.</td
                   >
-                  <td class="bg-white p-2 border-r border-gray-300"
+                  <td class="bg-white p-1.5 border-r border-black"
                     >{line.itemName}</td
                   >
-                  <td class="bg-white p-2 border-r border-gray-300 text-center"
+                  <td class="bg-white p-1.5 border-r border-black text-center"
                     >{line.hsnCode}</td
                   >
-                  <td class="bg-white text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-1.5 border-r border-black"
                     >{line.qty.toFixed(2)}</td
                   >
-                  <td class="bg-white text-center p-2 border-r border-gray-300"
+                  <td class="bg-white text-center p-1.5 border-r border-black"
                     >{line.unitName}</td
                   >
-                  <td class="bg-white text-right p-2 border-r border-gray-300"
+                  <td class="bg-white text-right p-1.5 border-r border-black"
                     >{formatCurrency(line.rate)}</td
                   >
-                  <td class="bg-white text-right p-2 border-r border-gray-300"
-                    >{line.discountPercent?.toFixed(2)} %</td
-                  >
-                  <td class="bg-white text-right p-2 border-r border-gray-300"
-                    >{formatCurrency(line.rate * line.qty - line.discount)}</td
-                  >
-                  <td class="bg-white text-center p-2 border-r border-gray-300"
-                    >{line.gstRate}%</td
-                  >
-                  <td class="bg-white text-right p-2"
+                  <td class="bg-white text-right p-1.5"
                     >{formatCurrency(line.taxableAmount || 0)}</td
                   >
                 </tr>
               {/each}
             </tbody>
-            <tfoot>
-              <tr class="bg-gray-200 font-semibold border-t-2 border-black">
-                <td colspan="3" class="p-2 border-r border-black text-right">
-                  Total
-                </td>
-                <td class="text-center p-2 border-r border-black">
-                  {itemLines
-                    .reduce((sum, line) => sum + line.qty, 0)
-                    .toFixed(2)}
-                </td>
-                <td class="p-2 border-r border-black text-center">Units</td>
-                <td class="p-2 border-r border-black"></td>
-                <td class="p-2 border-r border-black"></td>
-                <td class="p-2 border-r border-black"></td>
-                <td class="p-2 border-r border-black"></td>
-                <td class="text-right p-2"
-                  >{formatCurrency(getTotalTaxableAmount())}</td
-                >
-              </tr>
-            </tfoot>
           </table>
 
-          <!-- GST Breakdown Table -->
-          <table class="w-full mb-4 border border-black text-xs bg-white">
-            <thead>
-              <tr class="bg-gray-200">
-                <th class="text-center p-2 border-r border-black" rowspan="2"
-                  >GST %</th
-                >
-                <th class="text-center p-2 border-r border-black" rowspan="2"
-                  >Taxable Amt</th
-                >
-                <th class="text-center p-2 border-r border-black" colspan="2"
-                  >CGST/IGST</th
-                >
-                <th class="text-center p-2 border-r border-black" colspan="2"
-                  >SGST</th
-                >
-                <th class="text-center p-2" rowspan="2">Total</th>
-              </tr>
-              <tr class="bg-gray-200 border-t border-black">
-                <th class="text-center p-1 border-r border-black text-xs">%</th>
-                <th class="text-center p-1 border-r border-black text-xs"
-                  >Amt</th
-                >
-                <th class="text-center p-1 border-r border-black text-xs">%</th>
-                <th class="text-center p-1 border-r border-black text-xs"
-                  >Amt</th
-                >
-              </tr>
-            </thead>
-            <tbody class="bg-white">
-              {#each calculateGSTBreakdown() as gst}
-                <tr class="bg-white border-t border-gray-300">
-                  <td class="bg-white text-center p-2 border-r border-gray-300"
-                    >{gst.gstRate.toFixed(2)}</td
-                  >
-                  <td class="bg-white text-right p-2 border-r border-gray-300"
-                    >{formatCurrency(gst.taxableAmount)}</td
-                  >
-                  <td class="bg-white text-center p-2 border-r border-gray-300"
-                    >{(gst.gstRate / 2).toFixed(2)}</td
-                  >
-                  <td class="bg-white text-right p-2 border-r border-gray-300"
-                    >{formatCurrency(gst.cgstAmount)}</td
-                  >
-                  <td class="bg-white text-center p-2 border-r border-gray-300"
-                    >{(gst.gstRate / 2).toFixed(2)}</td
-                  >
-                  <td class="bg-white text-right p-2 border-r border-gray-300"
-                    >{formatCurrency(gst.sgstAmount)}</td
-                  >
-                  <td class="bg-white text-right p-2"
-                    >{formatCurrency(gst.totalAmount)}</td
-                  >
+          <!-- Tax Summary -->
+          <div class="bg-white text-xs border-t border-black">
+            <table class="w-full">
+              <tbody>
+                <tr>
+                  <td class="text-right p-1.5 pr-4" colspan="6"></td>
+                  <td class="text-right p-1.5 font-semibold w-24">
+                    {formatCurrency(getTotalTaxableAmount())}
+                  </td>
                 </tr>
-              {/each}
-              <tr class="bg-gray-200 font-semibold border-t-2 border-black">
-                <td class="text-center p-2 border-r border-black">Total</td>
-                <td class="text-right p-2 border-r border-black"
-                  >{formatCurrency(getTotalTaxableAmount())}</td
-                >
-                <td class="p-2 border-r border-black"></td>
-                <td class="text-right p-2 border-r border-black"
-                  >{formatCurrency(getTotalCGST())}</td
-                >
-                <td class="p-2 border-r border-black"></td>
-                <td class="text-right p-2 border-r border-black"
-                  >{formatCurrency(getTotalSGST())}</td
-                >
-                <td class="text-right p-2"
-                  >{formatCurrency(
-                    getTotalTaxableAmount() + getTotalGSTAmount(),
-                  )}</td
-                >
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Total Amount -->
-          <div
-            class="bg-white grid grid-cols-2 gap-4 mb-4 text-sm border-t-2 border-black pt-2"
-          >
-            <div>
-              <div class="mb-1">
-                Total Amount Before Tax: <span class="float-right"
-                  >₹ {formatCurrency(getTotalTaxableAmount())}</span
-                >
-              </div>
-              <div class="mb-1">
-                Less: Discount Amount (-):<span class="float-right">₹ 0.00</span
-                >
-              </div>
-              <div class="mb-1 font-semibold">
-                Total Tax Amount:<span class="float-right"></span>
-              </div>
-              <div class="ml-4 mb-1">
-                CGST:<span class="float-right"
-                  >₹ {formatCurrency(getTotalCGST())}</span
-                >
-              </div>
-              <div class="ml-4 mb-1">
-                SGST:<span class="float-right"
-                  >₹ {formatCurrency(getTotalSGST())}</span
-                >
-              </div>
-              <div class="mb-1">
-                Rounded Off (-):<span class="float-right">₹ 0.00</span>
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="border-2 border-black p-3 inline-block">
-                <div class="text-2xl font-bold">AMOUNT PAYABLE</div>
-                <div class="text-3xl font-bold mt-2">
-                  {company.currencySymbol}
-                  {formatCurrency(voucher.totalAmount)}
-                </div>
-              </div>
-            </div>
+                <tr>
+                  <td class="text-right p-1 pr-2" colspan="6">
+                    Add : IGST @ {itemLines[0]?.gstRate || 18}.00 %
+                  </td>
+                  <td class="text-right p-1 w-24">
+                    {formatCurrency(getTotalGSTAmount())}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div class="text-xs mb-4 font-semibold">
+          <!-- Grand Total -->
+          <div class="bg-white border-t-2 border-black">
+            <table class="w-full text-xs">
+              <tbody>
+                <tr>
+                  <td class="text-center p-1.5 font-bold" colspan="5">
+                    Grand Total
+                  </td>
+                  <td class="text-right p-1.5 font-bold">
+                    {itemLines
+                      .reduce((sum, line) => sum + line.qty, 0)
+                      .toFixed(2)} Pcs.
+                  </td>
+                  <td class="text-center p-1.5 font-bold w-24">-</td>
+                  <td class="text-right p-1.5 font-bold w-24">
+                    {formatCurrency(voucher.totalAmount)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tax Rate Table -->
+          <div class="bg-white mt-2 mb-2">
+            <table class="w-full border border-black text-xs">
+              <thead>
+                <tr class="bg-white border-b border-black">
+                  <th class="text-center p-1 border-r border-black" rowspan="2"
+                    >Tax Rate</th
+                  >
+                  <th class="text-center p-1 border-r border-black" rowspan="2"
+                    >Taxable Amt.</th
+                  >
+                  <th class="text-center p-1 border-r border-black" rowspan="2"
+                    >IGST Amt.</th
+                  >
+                  <th class="text-center p-1 border-r border-black" rowspan="2"
+                    >Total Tax</th
+                  >
+                </tr>
+              </thead>
+              <tbody class="bg-white">
+                {#each calculateGSTBreakdown() as gst}
+                  <tr class="bg-white border-t border-black">
+                    <td class="bg-white text-center p-1 border-r border-black"
+                      >{gst.gstRate.toFixed(0)} %</td
+                    >
+                    <td class="bg-white text-right p-1 border-r border-black"
+                      >{formatCurrency(gst.taxableAmount)}</td
+                    >
+                    <td class="bg-white text-right p-1 border-r border-black"
+                      >{formatCurrency(gst.cgstAmount + gst.sgstAmount)}</td
+                    >
+                    <td class="bg-white text-right p-1"
+                      >{formatCurrency(gst.cgstAmount + gst.sgstAmount)}</td
+                    >
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Amount in Words -->
+          <div
+            class="bg-white text-xs mb-2 border-t border-black pt-2 font-semibold"
+          >
             Rupees {company.currencyString}
             {Math.floor(voucher.totalAmount)} and {(
               (voucher.totalAmount % 1) *
               100
             ).toFixed(0)}
             {company.currencySubString} Only
+          </div>
+
+          <!-- Bank Details -->
+          <div class="bg-white mb-2 text-xs border border-black p-2">
+            <div class="font-semibold mb-1">Bank Details :</div>
+            <div class="grid grid-cols-2 gap-x-4">
+              <div>INDIAN OVERSEAS BANK Branch Rajinder nagar Sahibabad</div>
+              <div>A/C No. : 265502000000229 IFSC Code: IOB40002645</div>
+            </div>
           </div>
         {/if}
 
@@ -741,62 +689,43 @@
 
         <!-- Narration -->
         {#if config?.printNarration !== false && voucher.narration}
-          <div class="narration bg-white mb-4 text-sm">
-            <div class="font-semibold mb-1">Narration:</div>
+          <div
+            class="narration bg-white mb-2 text-xs border-b border-black pb-2"
+          >
+            <div class="font-semibold mb-0.5">Narration:</div>
             <div class="italic">{voucher.narration}</div>
           </div>
         {/if}
 
-        <!-- Terms and Conditions & Balance Section -->
-        <div
-          class="bg-white grid grid-cols-2 gap-6 mb-4 border-t border-black pt-4"
-        >
+        <!-- Terms and Conditions & Signature Section -->
+        <div class="bg-white grid grid-cols-2 gap-4 border-t border-black pt-2">
           <!-- Left: Terms & Conditions -->
           <div class="text-xs">
+            <div class="font-semibold mb-1">Terms & Conditions</div>
             {#if config?.termsAndConditions}
-              <div class="font-semibold mb-2">Terms & Conditions:</div>
-              <div class="whitespace-pre-line">
+              <div class="whitespace-pre-line text-xs leading-tight">
                 {config?.termsAndConditions}
               </div>
-            {/if}
-
-            {#if config?.declaration}
-              <div class="font-semibold mt-3 mb-1">Declaration:</div>
-              <div>{config?.declaration}</div>
-            {/if}
-
-            <div class="mt-3">
-              <div class="font-semibold mb-1">E.B.O.E.</div>
-              <div>Previous Balance: <span class="float-right">0.00</span></div>
-              <div>
-                Last Receipt Amount: <span class="float-right">0.00</span>
+            {:else}
+              <div class="text-xs leading-tight">
+                E.& O.E.<br />
+                1. Goods once sold will not be taken back.<br />
+                2. Interest @ 18% p.a. will be charged if the payment<br />
+                is not made in the stipulated time.<br />
+                3. Subject to 'Uttar Pradesh' Jurisdiction only.
               </div>
-              <div>
-                Current Balance: <span class="float-right text-red-600"
-                  >{formatCurrency(voucher.totalAmount)} Dr</span
-                >
-              </div>
-            </div>
+            {/if}
           </div>
 
-          <!-- Right: Signature Section -->
-          <div class="text-sm">
-            <div class="mb-8">
-              <div class="text-center mb-1">
-                for {config?.signatoryLine1 || company.name}
-              </div>
+          <!-- Right: Receiver's Signature & Company Signature -->
+          <div class="text-xs">
+            <div class="text-center mb-1">
+              <div class="font-semibold">Receiver's Signature :</div>
             </div>
-
-            <div class="grid grid-cols-2 gap-4 mt-16">
-              <div class="text-left">
-                <div class="border-t border-black pt-1">
-                  Receiver's Signature
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="border-t border-black pt-1">
-                  {config?.signatoryLine2 || "Authorized Signatory"}
-                </div>
+            <div class="mt-16 text-right">
+              <div class="font-semibold">For {company.name}</div>
+              <div class="mt-12 border-t border-black inline-block px-8 pt-1">
+                Authorised Signatory
               </div>
             </div>
           </div>
