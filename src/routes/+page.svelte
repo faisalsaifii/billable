@@ -15,12 +15,14 @@
   import Toast from "../components/Toast.svelte";
   import { session } from "../lib/stores/session";
   import { navigation } from "../lib/stores/navigation";
+  import type { VoucherType } from "../types";
 
   let currentView = $derived($navigation);
 
   let isCompanyOpen = $state(false);
   let activeSubmenu: string = $state("");
   let showShortcuts = $state(false);
+  let selectedTransactionType: VoucherType | null = $state(null);
 
   // Keyboard shortcuts handler
   function handleKeydown(e: KeyboardEvent) {
@@ -41,56 +43,67 @@
       switch (e.key.toLowerCase()) {
         case "f":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("CONFIGURATION");
           activeSubmenu = "Configuration";
           break;
         case "m":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("MASTERS");
           activeSubmenu = "Masters";
           break;
         case "u":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("UTILITIES");
           activeSubmenu = "Utilities";
           break;
         case "l":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Account Ledger";
           break;
         case "g":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Item Ledger";
           break;
         case "t":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Trial Balance";
           break;
         case "b":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Balance Sheet";
           break;
         case "s":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Stock Status";
           break;
         case "a":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Accounts Monthly Summary";
           break;
         case "i":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "Item Monthly Summary";
           break;
         case "e":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DATA_MANAGEMENT");
           activeSubmenu = "Data Management";
           break;
@@ -111,45 +124,71 @@
         switch (e.key) {
           case "F1":
             e.preventDefault();
+            selectedTransactionType = null;
             navigation.navigateTo("MASTERS");
             activeSubmenu = "Masters";
             // Add New Account - placeholder
             break;
           case "F2":
             e.preventDefault();
+            selectedTransactionType = null;
             navigation.navigateTo("MASTERS");
             activeSubmenu = "Masters";
             // Add Item - placeholder
             break;
           case "F3":
             e.preventDefault();
-            navigation.navigateTo("TRANSACTIONS");
-            activeSubmenu = "Sales";
+            selectedTransactionType = null;
+            setTimeout(() => {
+              selectedTransactionType = "Sales";
+              navigation.navigateTo("TRANSACTIONS");
+              activeSubmenu = "Sales";
+            }, 0);
             break;
           case "F5":
             e.preventDefault();
-            navigation.navigateTo("TRANSACTIONS");
-            activeSubmenu = "Payment";
+            selectedTransactionType = null;
+            setTimeout(() => {
+              selectedTransactionType = "Payment";
+              navigation.navigateTo("TRANSACTIONS");
+              activeSubmenu = "Payment";
+            }, 0);
             break;
           case "F6":
             e.preventDefault();
-            navigation.navigateTo("TRANSACTIONS");
-            activeSubmenu = "Receipt";
+            selectedTransactionType = null;
+            setTimeout(() => {
+              selectedTransactionType = "Receipt";
+              navigation.navigateTo("TRANSACTIONS");
+              activeSubmenu = "Receipt";
+            }, 0);
             break;
           case "F7":
             e.preventDefault();
-            navigation.navigateTo("TRANSACTIONS");
-            activeSubmenu = "Journal";
+            selectedTransactionType = null;
+            setTimeout(() => {
+              selectedTransactionType = "Journal";
+              navigation.navigateTo("TRANSACTIONS");
+              activeSubmenu = "Journal";
+            }, 0);
             break;
           case "F8":
             e.preventDefault();
-            navigation.navigateTo("TRANSACTIONS");
-            activeSubmenu = "Sales";
+            selectedTransactionType = null;
+            setTimeout(() => {
+              selectedTransactionType = "Sales";
+              navigation.navigateTo("TRANSACTIONS");
+              activeSubmenu = "Sales";
+            }, 0);
             break;
           case "F9":
             e.preventDefault();
-            navigation.navigateTo("TRANSACTIONS");
-            activeSubmenu = "Purchase";
+            selectedTransactionType = null;
+            setTimeout(() => {
+              selectedTransactionType = "Purchase";
+              navigation.navigateTo("TRANSACTIONS");
+              activeSubmenu = "Purchase";
+            }, 0);
             break;
         }
       }
@@ -160,6 +199,7 @@
       switch (e.key.toLowerCase()) {
         case "v":
           e.preventDefault();
+          selectedTransactionType = null;
           navigation.navigateTo("DISPLAY");
           activeSubmenu = "VAT Summary";
           break;
@@ -213,6 +253,13 @@
     return unsub;
   });
 
+  // Reset selectedTransactionType when navigating away from TRANSACTIONS
+  $effect(() => {
+    if (currentView !== "TRANSACTIONS") {
+      selectedTransactionType = null;
+    }
+  });
+
   let mainOptions = $derived([
     {
       text: "Company",
@@ -223,6 +270,7 @@
         {
           text: "Create Company",
           onclick: () => {
+            selectedTransactionType = null;
             navigation.navigateTo("CREATE_COMPANY");
             activeSubmenu = "Create Company";
           },
@@ -230,6 +278,7 @@
         {
           text: "Open Company",
           onclick: () => {
+            selectedTransactionType = null;
             navigation.navigateTo("COMPANY_DETAILS");
             activeSubmenu = "Open Company";
           },
@@ -239,6 +288,7 @@
               {
                 text: "Close Company",
                 onclick: () => {
+                  selectedTransactionType = null;
                   session.closeCompany();
                   activeSubmenu = "";
                 },
@@ -259,6 +309,7 @@
             {
               text: "Configuration",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("CONFIGURATION");
                 activeSubmenu = "Configuration";
               },
@@ -266,6 +317,7 @@
             {
               text: "Masters",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("MASTERS");
                 activeSubmenu = "Masters";
               },
@@ -273,6 +325,7 @@
             {
               text: "Utilities",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("UTILITIES");
                 activeSubmenu = "Utilities";
               },
@@ -305,99 +358,155 @@
             {
               text: "Sales",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Sales";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Sales";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Sales";
+                }, 0);
               },
             },
             {
               text: "Sales Return",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Sales Return";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Sales Return";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Sales Return";
+                }, 0);
               },
             },
             {
               text: "Purchase",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Purchase";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Purchase";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Purchase";
+                }, 0);
               },
             },
             {
               text: "Purchase Return",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Purchase Return";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Purchase Return";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Purchase Return";
+                }, 0);
               },
             },
             {
               text: "Payment",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Payment";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Payment";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Payment";
+                }, 0);
               },
             },
             {
               text: "Receipt",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Receipt";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Receipt";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Receipt";
+                }, 0);
               },
             },
             {
               text: "Journal",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Journal";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Journal";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Journal";
+                }, 0);
               },
             },
             {
               text: "Contra",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Contra";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Contra";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Contra";
+                }, 0);
               },
             },
             {
               text: "Debit Note",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Debit Note";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Debit Note";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Debit Note";
+                }, 0);
               },
             },
             {
               text: "Credit Note",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Credit Note";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Credit Note";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Credit Note";
+                }, 0);
               },
             },
             {
               text: "Stock Transfer",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Stock Transfer";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Stock Transfer";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Stock Transfer";
+                }, 0);
               },
             },
             {
               text: "Forms Received",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Forms Received";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Forms Received";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Forms Received";
+                }, 0);
               },
             },
             {
               text: "Forms Issued",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "Forms Issued";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "Forms Issued";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "Forms Issued";
+                }, 0);
               },
             },
             {
               text: "VAT Journal",
               onclick: () => {
-                navigation.navigateTo("TRANSACTIONS");
-                activeSubmenu = "VAT Journal";
+                selectedTransactionType = null;
+                setTimeout(() => {
+                  selectedTransactionType = "VAT Journal";
+                  navigation.navigateTo("TRANSACTIONS");
+                  activeSubmenu = "VAT Journal";
+                }, 0);
               },
             },
           ]
@@ -417,6 +526,7 @@
             {
               text: "Trial Balance",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("DISPLAY");
                 activeSubmenu = "Trial Balance";
               },
@@ -424,6 +534,7 @@
             {
               text: "Account Ledger",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("DISPLAY");
                 activeSubmenu = "Account Ledger";
               },
@@ -431,6 +542,7 @@
             {
               text: "Stock Status",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("DISPLAY");
                 activeSubmenu = "Stock Status";
               },
@@ -446,6 +558,7 @@
             {
               text: "Printing",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("PRINTING");
                 activeSubmenu = "Printing";
               },
@@ -462,6 +575,7 @@
             {
               text: "Data Management",
               onclick: () => {
+                selectedTransactionType = null;
                 navigation.navigateTo("DATA_MANAGEMENT");
                 activeSubmenu = "Data Management";
               },
@@ -480,6 +594,7 @@
   >
     <Button
       onclick={() => {
+        selectedTransactionType = null;
         navigation.navigateTo("HOME");
         activeSubmenu = "";
       }}
@@ -553,7 +668,7 @@
     {/if}
 
     {#if currentView == "TRANSACTIONS"}
-      <Transactions />
+      <Transactions transactionType={selectedTransactionType} />
     {/if}
 
     {#if currentView == "PRINTING"}

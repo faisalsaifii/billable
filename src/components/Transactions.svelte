@@ -3,11 +3,25 @@
   import AccountingVoucherEntry from "./transactions/AccountingVoucherEntry.svelte";
   import InventoryVoucherEntry from "./transactions/InventoryVoucherEntry.svelte";
   import VoucherList from "./transactions/VoucherList.svelte";
-  import type { VoucherType } from "../types";
+  import type { VoucherType, Voucher } from "../types";
 
-  type TxView = "MENU" | "ADD" | "LIST";
+  let { transactionType }: { transactionType: VoucherType | null } = $props();
+
+  type TxView = "MENU" | "ADD" | "LIST" | "EDIT";
   let view: TxView = $state("MENU");
   let selectedType: VoucherType | null = $state(null);
+  let editingVoucher: Voucher | null = $state(null);
+
+  // When transactionType prop is provided, go directly to list view
+  $effect(() => {
+    if (transactionType) {
+      selectedType = transactionType;
+      view = "LIST";
+    } else {
+      view = "MENU";
+      selectedType = null;
+    }
+  });
 
   const INVENTORY_TYPES: VoucherType[] = [
     "Sales",
@@ -30,6 +44,21 @@
     view = mode;
   };
 
+  const openList = (type: VoucherType) => {
+    selectedType = type;
+    view = "LIST";
+  };
+
+  const openAdd = () => {
+    view = "ADD";
+    editingVoucher = null;
+  };
+
+  const openEdit = (voucher: Voucher) => {
+    editingVoucher = voucher;
+    view = "EDIT";
+  };
+
   const menuItems: { label: string; type: VoucherType }[] = [
     { label: "Sales", type: "Sales" },
     { label: "Sales Return", type: "Sales Return" },
@@ -49,60 +78,43 @@
 </script>
 
 <div class="flex h-full">
-  <!-- Sidebar -->
-  <div
-    class="w-48 bg-neutral-900 border-r border-neutral-800 p-4 overflow-y-auto"
-  >
-    <h2
-      class="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-4"
+  <!-- Sidebar - Only show when no specific transaction type is selected from dropdown -->
+  {#if !transactionType}
+    <div
+      class="w-48 bg-neutral-900 border-r border-neutral-800 p-4 overflow-y-auto"
     >
-      Transactions
-    </h2>
-    <button
-      onclick={() => {
-        view = "MENU";
-        selectedType = null;
-      }}
-      class="w-full text-left px-3 py-2 rounded-lg text-sm mb-3 hover:bg-neutral-800 text-neutral-400 transition-colors duration-150"
-      >← Back to Menu</button
-    >
-    <div class="space-y-2">
-      {#each menuItems as item}
-        <div
-          class="rounded-lg overflow-hidden border border-neutral-800 {selectedType ===
-          item.type
-            ? 'border-blue-600/50 bg-neutral-800/50'
-            : ''}"
-        >
-          <p
-            class="text-xs font-medium px-3 py-2 text-neutral-300 bg-neutral-800/30"
+      <h2
+        class="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-4"
+      >
+        Transactions
+      </h2>
+      <button
+        onclick={() => {
+          view = "MENU";
+          selectedType = null;
+        }}
+        class="w-full text-left px-3 py-2 rounded-lg text-sm mb-3 hover:bg-neutral-800 text-neutral-400 transition-colors duration-150"
+        >← Back to Menu</button
+      >
+      <div class="space-y-2">
+        {#each menuItems as item}
+          <button
+            onclick={() => openList(item.type)}
+            class="w-full rounded-lg overflow-hidden border border-neutral-800 hover:border-neutral-700 transition-all {selectedType ===
+            item.type
+              ? 'border-blue-600/50 bg-neutral-800/50'
+              : ''}"
           >
-            {item.label}
-          </p>
-          <div class="flex gap-1 p-1.5">
-            <button
-              onclick={() => open(item.type, "ADD")}
-              class="flex-1 text-xs px-2 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-md font-medium transition-colors duration-150 {selectedType ===
-                item.type && view === 'ADD'
-                ? 'ring-1 ring-emerald-500'
-                : ''}"
+            <p
+              class="text-sm font-medium px-3 py-2.5 text-left text-neutral-300 hover:text-white transition-colors"
             >
-              Add
-            </button>
-            <button
-              onclick={() => open(item.type, "LIST")}
-              class="flex-1 text-xs px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-neutral-300 rounded-md font-medium transition-colors duration-150 {selectedType ===
-                item.type && view === 'LIST'
-                ? 'ring-1 ring-blue-500'
-                : ''}"
-            >
-              List
-            </button>
-          </div>
-        </div>
-      {/each}
+              {item.label}
+            </p>
+          </button>
+        {/each}
+      </div>
     </div>
-  </div>
+  {/if}
 
   <!-- Main Content -->
   <div class="flex-1 overflow-auto">
@@ -139,8 +151,27 @@
       {/if}
     {:else if view === "LIST" && selectedType}
       <div class="p-6">
-        <h1 class="text-xl font-bold mb-4 text-white">{selectedType} – List</h1>
-        <VoucherList voucherType={selectedType} />
+        <VoucherList
+          voucherType={selectedType}
+          onAddNew={openAdd}
+          onEdit={openEdit}
+        />
+      </div>
+    {:else if view === "EDIT" && selectedType && editingVoucher}
+      <div class="p-8">
+        <h1 class="text-2xl font-bold mb-3 text-white">Edit {selectedType}</h1>
+        <p class="text-amber-400 text-sm mb-4">
+          Edit functionality coming soon. Voucher #{editingVoucher.vchNo} ({editingVoucher.date})
+        </p>
+        <button
+          onclick={() => {
+            view = "LIST";
+            editingVoucher = null;
+          }}
+          class="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 rounded-lg"
+        >
+          ← Back to List
+        </button>
       </div>
     {/if}
   </div>

@@ -66,10 +66,10 @@
   let bsLines: BSLine[] = $state([]);
 
   const isSales = $derived(
-    voucherType === "Sales" || voucherType === "Sales Return"
+    voucherType === "Sales" || voucherType === "Sales Return",
   );
   const isPurchase = $derived(
-    voucherType === "Purchase" || voucherType === "Purchase Return"
+    voucherType === "Purchase" || voucherType === "Purchase Return",
   );
 
   $effect(() => {
@@ -113,7 +113,7 @@
       nextVchNo = await voucherService.getNextVoucherNo(
         id,
         voucherType,
-        header.series
+        header.series,
       );
       mastersLoadedForCompanyId = id;
     } finally {
@@ -161,12 +161,15 @@
   };
 
   const itemTotal = $derived(
-    itemLines.reduce((s, l) => s + (l.amount || 0), 0)
+    itemLines.reduce((s, l) => s + (l.amount || 0), 0),
   );
   const bsTotal = $derived(bsLines.reduce((s, l) => s + (l.amount || 0), 0));
   const grandTotal = $derived(itemTotal + bsTotal);
 
   const handleSubmit = async () => {
+    error = "";
+    successMsg = "";
+
     if (!companyId) {
       error = "No active company selected. Re-open the company and try again.";
       return;
@@ -193,7 +196,10 @@
     if (
       itemLines.some(
         (l) =>
-          !l.itemId || !validItemIds.has(l.itemId) || l.qty <= 0 || l.amount < 0
+          !l.itemId ||
+          !validItemIds.has(l.itemId) ||
+          l.qty <= 0 ||
+          l.amount < 0,
       )
     ) {
       error =
@@ -205,7 +211,7 @@
       const validBillSundryIds = new Set(billSundries.map((b) => b.id));
       if (
         bsLines.some(
-          (b) => !b.billSundryId || !validBillSundryIds.has(b.billSundryId)
+          (b) => !b.billSundryId || !validBillSundryIds.has(b.billSundryId),
         )
       ) {
         error =
@@ -225,8 +231,6 @@
     }
 
     loading = true;
-    error = "";
-    successMsg = "";
     try {
       await voucherService.createVoucher({
         companyId,
@@ -257,12 +261,18 @@
           amount: b.amount,
         })),
       });
-      successMsg = `${voucherType} #${nextVchNo} saved! Total: ${grandTotal.toFixed(2)}`;
+
+      // Only proceed with success actions if voucher creation succeeded
+      const savedVchNo = nextVchNo;
+      const savedTotal = grandTotal;
+
       nextVchNo = await voucherService.getNextVoucherNo(
         companyId,
         voucherType,
-        header.series
+        header.series,
       );
+
+      // Reset form
       itemLines = [
         {
           itemId: items[0]?.id || 0,
@@ -275,10 +285,13 @@
       ];
       bsLines = [];
       header.narration = "";
+
+      // Set success message only after everything else succeeds
+      successMsg = `${voucherType} #${savedVchNo} saved! Total: ${savedTotal.toFixed(2)}`;
       onSaved?.();
     } catch (e) {
-      console.log(e);
-      error = e instanceof Error ? e.message : "Error saving";
+      console.error("Error creating voucher:", e);
+      error = e instanceof Error ? e.message : "Error saving voucher";
     } finally {
       loading = false;
     }
@@ -327,7 +340,7 @@
           value={header.partyAccountId}
           onchange={(e) =>
             (header.partyAccountId = Number(
-              (e.target as HTMLSelectElement).value
+              (e.target as HTMLSelectElement).value,
             ))}
           class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
         >
@@ -341,7 +354,7 @@
             value={header.saleTypeId}
             onchange={(e) =>
               (header.saleTypeId = Number(
-                (e.target as HTMLSelectElement).value
+                (e.target as HTMLSelectElement).value,
               ))}
             class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
           >
@@ -356,7 +369,7 @@
             value={header.purchaseTypeId}
             onchange={(e) =>
               (header.purchaseTypeId = Number(
-                (e.target as HTMLSelectElement).value
+                (e.target as HTMLSelectElement).value,
               ))}
             class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
           >
@@ -397,7 +410,7 @@
                   updateItemLine(
                     i,
                     "itemId",
-                    Number((e.target as HTMLSelectElement).value)
+                    Number((e.target as HTMLSelectElement).value),
                   )}
                 class="w-full p-1 bg-neutral-700 border border-gray-600 rounded text-sm"
               >
@@ -415,7 +428,7 @@
                   updateItemLine(
                     i,
                     "qty",
-                    Number((e.target as HTMLInputElement).value)
+                    Number((e.target as HTMLInputElement).value),
                   )}
                 class="w-full p-1 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
               />
@@ -427,7 +440,7 @@
                   updateItemLine(
                     i,
                     "unitId",
-                    Number((e.target as HTMLSelectElement).value)
+                    Number((e.target as HTMLSelectElement).value),
                   )}
                 class="w-full p-1 bg-neutral-700 border border-gray-600 rounded text-sm"
               >
@@ -444,7 +457,7 @@
                   updateItemLine(
                     i,
                     "rate",
-                    Number((e.target as HTMLInputElement).value)
+                    Number((e.target as HTMLInputElement).value),
                   )}
                 class="w-full p-1 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
               />
@@ -460,7 +473,7 @@
                   updateItemLine(
                     i,
                     "discount",
-                    Number((e.target as HTMLInputElement).value)
+                    Number((e.target as HTMLInputElement).value),
                   )}
                 class="w-full p-1 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
               />
@@ -520,7 +533,7 @@
                     value={bs.billSundryId}
                     onchange={(e) => {
                       bs.billSundryId = Number(
-                        (e.target as HTMLSelectElement).value
+                        (e.target as HTMLSelectElement).value,
                       );
                       bsLines = [...bsLines];
                     }}

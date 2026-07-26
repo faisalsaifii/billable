@@ -6,7 +6,15 @@
   import type { Voucher, VoucherType } from "../../types";
   import { onMount } from "svelte";
 
-  let { voucherType }: { voucherType: VoucherType } = $props();
+  let {
+    voucherType,
+    onAddNew,
+    onEdit,
+  }: {
+    voucherType: VoucherType;
+    onAddNew?: () => void;
+    onEdit?: (voucher: Voucher) => void;
+  } = $props();
   let companyId = $state(0);
   let vouchers: Voucher[] = $state([]);
   let loading = $state(false);
@@ -34,7 +42,7 @@
         companyId,
         voucherType,
         fromDate || undefined,
-        toDate || undefined
+        toDate || undefined,
       );
     } catch (e) {
       error = e instanceof Error ? e.message : "Error";
@@ -67,6 +75,19 @@
 </script>
 
 <div class="p-4">
+  <div class="flex justify-between items-start mb-6">
+    <h1 class="text-xl font-bold text-white">{voucherType} – List</h1>
+    {#if onAddNew}
+      <button
+        onclick={onAddNew}
+        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+      >
+        <span class="text-lg">+</span>
+        <span>Add {voucherType}</span>
+      </button>
+    {/if}
+  </div>
+
   <div class="flex gap-3 mb-4 items-end">
     <div>
       <label class="text-xs text-gray-400 block mb-1">From Date</label>
@@ -131,6 +152,15 @@
             >
             <td class="p-2 text-center">
               <div class="flex gap-2 justify-center">
+                {#if onEdit}
+                  <button
+                    onclick={() => onEdit(v)}
+                    class="px-2 py-0.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded"
+                    title="Edit"
+                  >
+                    Edit
+                  </button>
+                {/if}
                 <button
                   onclick={() => handlePrint(v)}
                   class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"

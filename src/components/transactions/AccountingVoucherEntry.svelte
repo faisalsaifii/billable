@@ -56,7 +56,7 @@
     nextVchNo = await voucherService.getNextVoucherNo(
       companyId,
       voucherType,
-      formHeader.series
+      formHeader.series,
     );
   });
 
@@ -78,14 +78,17 @@
   };
 
   const totalDebit = $derived(
-    lines.reduce((s, l) => (l.dc === "D" ? s + (l.amount || 0) : s), 0)
+    lines.reduce((s, l) => (l.dc === "D" ? s + (l.amount || 0) : s), 0),
   );
   const totalCredit = $derived(
-    lines.reduce((s, l) => (l.dc === "C" ? s + (l.amount || 0) : s), 0)
+    lines.reduce((s, l) => (l.dc === "C" ? s + (l.amount || 0) : s), 0),
   );
   const isBalanced = $derived(Math.abs(totalDebit - totalCredit) < 0.005);
 
   const handleSubmit = async () => {
+    error = "";
+    successMsg = "";
+
     if (!isBalanced) {
       error = "Debit and Credit totals must match";
       return;
@@ -94,9 +97,8 @@
       error = "All lines must have an account and amount";
       return;
     }
+
     loading = true;
-    error = "";
-    successMsg = "";
     try {
       await voucherService.createVoucher({
         companyId,
@@ -115,12 +117,17 @@
         itemLines: [],
         billSundryLines: [],
       });
-      successMsg = `${voucherType} #${nextVchNo} saved!`;
+
+      // Only proceed with success actions if voucher creation succeeded
+      const savedVchNo = nextVchNo;
+
       nextVchNo = await voucherService.getNextVoucherNo(
         companyId,
         voucherType,
-        formHeader.series
+        formHeader.series,
       );
+
+      // Reset form
       lines = [
         {
           accountId: accounts[0]?.id || 0,
@@ -136,9 +143,12 @@
         },
       ];
       formHeader.narration = "";
+
+      // Set success message only after everything else succeeds
+      successMsg = `${voucherType} #${savedVchNo} saved!`;
       onSaved?.();
     } catch (e) {
-      console.log(e);
+      console.error("Error creating voucher:", e);
       error = e instanceof Error ? e.message : "Error saving voucher";
     } finally {
       loading = false;
