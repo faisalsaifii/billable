@@ -37,6 +37,10 @@
     cstNo: company.cstNo,
     defaultTaxRate1: company.defaultTaxRate1,
     defaultTaxRate2: company.defaultTaxRate2,
+    bankName: company.bankName,
+    bankBranch: company.bankBranch,
+    bankAccountNo: company.bankAccountNo,
+    bankIFSC: company.bankIFSC,
   };
 
   let showTaxFields = company.enableTax;
@@ -197,6 +201,42 @@
           label="Email"
           type="email"
           bind:value={formData.email}
+        />
+      </div>
+    </div>
+
+    <!-- Bank Details Section -->
+    <div class="card-elevated">
+      <h2 class="section-title">Bank Details</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input
+          name="bankName"
+          label="Bank Name"
+          type="text"
+          bind:value={formData.bankName}
+          placeholder="e.g., EXAMPLE BANK"
+        />
+        <Input
+          name="bankBranch"
+          label="Branch"
+          type="text"
+          bind:value={formData.bankBranch}
+          placeholder="e.g., Example Branch"
+        />
+        <Input
+          name="bankAccountNo"
+          label="Account Number"
+          type="text"
+          bind:value={formData.bankAccountNo}
+          placeholder="e.g., 211100000000000"
+        />
+        <Input
+          name="bankIFSC"
+          label="IFSC Code"
+          type="text"
+          bind:value={formData.bankIFSC}
+          placeholder="e.g., IOB40002645"
         />
       </div>
     </div>

@@ -29,6 +29,10 @@ export interface Company {
   cstNo: string;
   defaultTaxRate1: number;
   defaultTaxRate2: number;
+  bankName: string;
+  bankBranch: string;
+  bankAccountNo: string;
+  bankIFSC: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,7 +46,10 @@ export interface SuperUser {
   updatedAt: string;
 }
 
-export interface LoginDTO { username: string; password: string; }
+export interface LoginDTO {
+  username: string;
+  password: string;
+}
 export type CreateCompanyDTO = Omit<Company, "id" | "createdAt" | "updatedAt">;
 
 // ==================== MASTERS ====================
@@ -161,7 +168,12 @@ export interface BillSundry {
   alias: string | null;
   printName: string | null;
   type: "Additive" | "Subtractive";
-  applicableOn: "Item Basic Amount" | "Item MRP" | "Per Unit" | "Fixed Amount" | "Previous Bill Sundry Amount";
+  applicableOn:
+    | "Item Basic Amount"
+    | "Item MRP"
+    | "Per Unit"
+    | "Fixed Amount"
+    | "Previous Bill Sundry Amount";
   rate: number;
   isPercentage: boolean;
   accountId: number | null;
@@ -177,7 +189,13 @@ export interface SaleType {
   name: string;
   alias: string | null;
   region: "Local" | "Central";
-  taxationType: "Taxable" | "Exempt" | "Tax Free" | "Against ST Form" | "Multi Tax" | "Tax Paid";
+  taxationType:
+    | "Taxable"
+    | "Exempt"
+    | "Tax Free"
+    | "Against ST Form"
+    | "Multi Tax"
+    | "Tax Paid";
   taxInvoice: boolean;
   taxRate: number;
   surchargeRate: number;
@@ -193,7 +211,13 @@ export interface PurchaseType {
   name: string;
   alias: string | null;
   region: "Local" | "Central";
-  taxationType: "Taxable" | "Exempt" | "Tax Free" | "Against ST Form" | "Multi Tax" | "Tax Paid";
+  taxationType:
+    | "Taxable"
+    | "Exempt"
+    | "Tax Free"
+    | "Against ST Form"
+    | "Multi Tax"
+    | "Tax Paid";
   taxRate: number;
   surchargeRate: number;
   description: string | null;
@@ -230,7 +254,10 @@ export interface Configuration {
   dateSeparator: string;
   currencyDecimalPlaces: number;
   skipCurrencySeparator: boolean;
-  deleteExportedFilesOnClose: "Never" | "Ask before Deletion" | "Delete Automatically";
+  deleteExportedFilesOnClose:
+    | "Never"
+    | "Ask before Deletion"
+    | "Delete Automatically";
   displayThoughtOfTheDay: boolean;
   billByBillDetails: boolean;
   billReferenceGrouping: boolean;
@@ -239,7 +266,13 @@ export interface Configuration {
   showAccountBalanceDuringEntry: boolean;
   bankReconciliation: boolean;
   qtyDecimalPlaces: number;
-  stockValuationMethod: "FIFO" | "LIFO" | "Weighted Average" | "Last Purchase" | "Average Price" | "Self Evaluation";
+  stockValuationMethod:
+    | "FIFO"
+    | "LIFO"
+    | "Weighted Average"
+    | "Last Purchase"
+    | "Average Price"
+    | "Self Evaluation";
   enableMultiGodown: boolean;
   enableBillSundryNarration: boolean;
   showItemBalanceDuringEntry: boolean;
@@ -262,10 +295,20 @@ export interface Configuration {
 // ==================== VOUCHERS / TRANSACTIONS ====================
 
 export type VoucherType =
-  | "Sales" | "Sales Return" | "Purchase" | "Purchase Return"
-  | "Payment" | "Receipt" | "Journal" | "Contra"
-  | "Debit Note" | "Credit Note" | "Stock Transfer"
-  | "Forms Received" | "Forms Issued" | "VAT Journal";
+  | "Sales"
+  | "Sales Return"
+  | "Purchase"
+  | "Purchase Return"
+  | "Payment"
+  | "Receipt"
+  | "Journal"
+  | "Contra"
+  | "Debit Note"
+  | "Credit Note"
+  | "Stock Transfer"
+  | "Forms Received"
+  | "Forms Issued"
+  | "VAT Journal";
 
 export interface Voucher {
   id: number;
@@ -333,7 +376,6 @@ export interface CreateVoucherDTO {
   itemLines: Omit<VoucherItemLine, "id" | "voucherId">[];
   billSundryLines: Omit<VoucherBillSundryLine, "id" | "voucherId">[];
 }
-
 
 // ==================== MODULE 5: PRINTING ====================
 
@@ -449,7 +491,11 @@ export interface ProfitLossRow {
   accountName: string;
   accountId: number;
   amount: number;
-  category: "Direct Expense" | "Direct Income" | "Indirect Expense" | "Indirect Income";
+  category:
+    | "Direct Expense"
+    | "Direct Income"
+    | "Indirect Expense"
+    | "Indirect Income";
   level: number;
 }
 

@@ -59,6 +59,10 @@ class CompanyService {
         cstNo TEXT,
         defaultTaxRate1 REAL,
         defaultTaxRate2 REAL,
+        bankName TEXT,
+        bankBranch TEXT,
+        bankAccountNo TEXT,
+        bankIFSC TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
       );
@@ -87,6 +91,30 @@ class CompanyService {
         FOREIGN KEY (companyId) REFERENCES companies(id)
       );
     `);
+
+    // Migration: Add bank details columns if they don't exist
+    try {
+      await this.db.execute(`ALTER TABLE companies ADD COLUMN bankName TEXT`);
+    } catch (e) {
+      // Column already exists, ignore error
+    }
+    try {
+      await this.db.execute(`ALTER TABLE companies ADD COLUMN bankBranch TEXT`);
+    } catch (e) {
+      // Column already exists, ignore error
+    }
+    try {
+      await this.db.execute(
+        `ALTER TABLE companies ADD COLUMN bankAccountNo TEXT`,
+      );
+    } catch (e) {
+      // Column already exists, ignore error
+    }
+    try {
+      await this.db.execute(`ALTER TABLE companies ADD COLUMN bankIFSC TEXT`);
+    } catch (e) {
+      // Column already exists, ignore error
+    }
   }
 
   async createCompany(data: CreateCompanyDTO): Promise<number> {
@@ -99,10 +127,12 @@ class CompanyService {
         address1, address2, address3, address4, itPAN, telNo, ward, fax, email,
         country, state, currencySymbol, currencyString, currencySubString,
         enableTax, taxType, enableAddTax, addTaxCaption, tin, lstNo, gstNo, cstNo,
-        defaultTaxRate1, defaultTaxRate2, createdAt, updatedAt
+        defaultTaxRate1, defaultTaxRate2, bankName, bankBranch, bankAccountNo, bankIFSC,
+        createdAt, updatedAt
       ) VALUES (
         ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16,
-        ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30
+        ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30,
+        ?31, ?32, ?33, ?34
       )`,
       [
         data.name,
@@ -133,13 +163,17 @@ class CompanyService {
         data.cstNo,
         data.defaultTaxRate1,
         data.defaultTaxRate2,
+        data.bankName,
+        data.bankBranch,
+        data.bankAccountNo,
+        data.bankIFSC,
         now,
         now,
-      ]
+      ],
     );
 
     const companies = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     const companyId = companies[0]?.id || 0;
     // Seed 29 default account groups + 56 accounts + default item group
@@ -158,7 +192,7 @@ class CompanyService {
     if (!this.db) throw new Error("Database not initialized");
     const companies = await this.db.select<Company[]>(
       "SELECT * FROM companies WHERE id = ?1",
-      [id]
+      [id],
     );
     return companies[0] || null;
   }
@@ -167,14 +201,14 @@ class CompanyService {
     if (!this.db) throw new Error("Database not initialized");
     const companies = await this.db.select<Company[]>(
       "SELECT * FROM companies WHERE name = ?1",
-      [name]
+      [name],
     );
     return companies[0] || null;
   }
 
   async updateCompany(
     id: number,
-    data: Partial<CreateCompanyDTO>
+    data: Partial<CreateCompanyDTO>,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
 
@@ -192,7 +226,7 @@ class CompanyService {
       `UPDATE companies SET ${fields}, updatedAt = ?${
         Object.keys(updateData).length + 1
       } WHERE id = ?${Object.keys(updateData).length + 2}`,
-      [...Object.values(updateData), now, id]
+      [...Object.values(updateData), now, id],
     );
   }
 
@@ -204,7 +238,7 @@ class CompanyService {
   async createSuperUser(
     companyId: number,
     username: string,
-    passwordHash: string
+    passwordHash: string,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
 
@@ -212,11 +246,11 @@ class CompanyService {
     await this.db.execute(
       `INSERT INTO superusers (companyId, username, passwordHash, createdAt, updatedAt)
        VALUES (?1, ?2, ?3, ?4, ?5)`,
-      [companyId, username, passwordHash, now, now]
+      [companyId, username, passwordHash, now, now],
     );
 
     const result = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return result[0]?.id || 0;
   }
@@ -225,7 +259,7 @@ class CompanyService {
     if (!this.db) throw new Error("Database not initialized");
     const users = await this.db.select<SuperUser[]>(
       "SELECT * FROM superusers WHERE companyId = ?1",
-      [companyId]
+      [companyId],
     );
     return users[0] || null;
   }
@@ -233,7 +267,7 @@ class CompanyService {
   async validateLogin(
     companyId: number,
     username: string,
-    password: string
+    password: string,
   ): Promise<boolean> {
     if (!this.db) throw new Error("Database not initialized");
 

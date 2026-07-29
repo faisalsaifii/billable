@@ -643,13 +643,25 @@
           </div>
 
           <!-- Bank Details -->
-          <div class="bg-white mb-2 text-xs border border-black p-2">
-            <div class="font-semibold mb-1">Bank Details :</div>
-            <div class="grid grid-cols-2 gap-x-4">
-              <div>INDIAN OVERSEAS BANK Branch Rajinder nagar Sahibabad</div>
-              <div>A/C No. : 265502000000229 IFSC Code: IOB40002645</div>
+          {#if company.bankName || company.bankAccountNo}
+            <div class="bg-white mb-2 text-xs border border-black p-2">
+              <div class="font-semibold mb-1">Bank Details :</div>
+              <div class="grid grid-cols-2 gap-x-4">
+                <div>
+                  {#if company.bankName}{company.bankName}{/if}
+                  {#if company.bankBranch}
+                    Branch {company.bankBranch}
+                  {/if}
+                </div>
+                <div>
+                  {#if company.bankAccountNo}A/C No. : {company.bankAccountNo}{/if}
+                  {#if company.bankIFSC}
+                    IFSC Code: {company.bankIFSC}
+                  {/if}
+                </div>
+              </div>
             </div>
-          </div>
+          {/if}
         {/if}
 
         <!-- Account Lines (for non-inventory vouchers) -->
