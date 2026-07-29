@@ -386,6 +386,24 @@ class MastersService {
         printName TEXT,
         openingBalance REAL DEFAULT 0,
         openingBalanceType TEXT DEFAULT 'Debit',
+        prevYearBalance REAL DEFAULT 0,
+        prevYearBalanceType TEXT DEFAULT 'Debit',
+        address TEXT,
+        country TEXT,
+        typeOfDealer TEXT,
+        gst TEXT,
+        cnic TEXT,
+        itPan TEXT,
+        email TEXT,
+        mobileNo TEXT,
+        telNo TEXT,
+        contactPerson TEXT,
+        station TEXT,
+        tin TEXT,
+        ward TEXT,
+        whatsappNo TEXT,
+        fax TEXT,
+        transport TEXT,
         maintainBillByBill INTEGER DEFAULT 0,
         creditDaysForSale INTEGER DEFAULT 0,
         creditDaysForPurchase INTEGER DEFAULT 0,
@@ -401,6 +419,36 @@ class MastersService {
         FOREIGN KEY (groupId) REFERENCES account_groups(id) ON DELETE CASCADE
       );
     `);
+
+    // Migration: Add new columns if they don't exist
+    const newColumns = [
+      "prevYearBalance REAL DEFAULT 0",
+      "prevYearBalanceType TEXT DEFAULT 'Debit'",
+      "address TEXT",
+      "country TEXT",
+      "typeOfDealer TEXT",
+      "gst TEXT",
+      "cnic TEXT",
+      "itPan TEXT",
+      "email TEXT",
+      "mobileNo TEXT",
+      "telNo TEXT",
+      "contactPerson TEXT",
+      "station TEXT",
+      "tin TEXT",
+      "ward TEXT",
+      "whatsappNo TEXT",
+      "fax TEXT",
+      "transport TEXT",
+    ];
+
+    for (const column of newColumns) {
+      try {
+        await this.db.execute(`ALTER TABLE accounts ADD COLUMN ${column}`);
+      } catch (e) {
+        // Column already exists, ignore error
+      }
+    }
 
     await this.db.execute(`
       CREATE TABLE IF NOT EXISTS item_groups (
@@ -723,9 +771,11 @@ class MastersService {
     const now = new Date().toISOString();
     await this.db.execute(
       `INSERT INTO accounts (companyId,groupId,name,alias,printName,openingBalance,openingBalanceType,
+       prevYearBalance,prevYearBalanceType,address,country,typeOfDealer,gst,cnic,itPan,email,
+       mobileNo,telNo,contactPerson,station,tin,ward,whatsappNo,fax,transport,
        maintainBillByBill,creditDaysForSale,creditDaysForPurchase,bankAccountNo,ifscCode,description,
        isPredefined,active,createdAt,updatedAt)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)`,
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,?28,?29,?30,?31,?32,?33,?34,?35)`,
       [
         data.companyId,
         data.groupId,
@@ -734,6 +784,24 @@ class MastersService {
         data.printName || null,
         data.openingBalance || 0,
         data.openingBalanceType || "Debit",
+        data.prevYearBalance || 0,
+        data.prevYearBalanceType || "Debit",
+        data.address || null,
+        data.country || null,
+        data.typeOfDealer || null,
+        data.gst || null,
+        data.cnic || null,
+        data.itPan || null,
+        data.email || null,
+        data.mobileNo || null,
+        data.telNo || null,
+        data.contactPerson || null,
+        data.station || null,
+        data.tin || null,
+        data.ward || null,
+        data.whatsappNo || null,
+        data.fax || null,
+        data.transport || null,
         data.maintainBillByBill ? 1 : 0,
         data.creditDaysForSale || 0,
         data.creditDaysForPurchase || 0,

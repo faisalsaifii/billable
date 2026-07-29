@@ -16,8 +16,28 @@
   let formData = $state({
     groupId: 0,
     name: "",
+    alias: "",
+    printName: "",
     openingBalance: 0,
     openingBalanceType: "Debit" as "Debit" | "Credit",
+    prevYearBalance: 0,
+    prevYearBalanceType: "Debit" as "Debit" | "Credit",
+    address: "",
+    country: "",
+    typeOfDealer: "",
+    gst: "",
+    cnic: "",
+    itPan: "",
+    email: "",
+    mobileNo: "",
+    telNo: "",
+    contactPerson: "",
+    station: "",
+    tin: "",
+    ward: "",
+    whatsappNo: "",
+    fax: "",
+    transport: "",
   });
 
   const loadData = async () => {
@@ -51,10 +71,28 @@
         companyId,
         groupId: formData.groupId,
         name: formData.name,
-        alias: null,
-        printName: null,
+        alias: formData.alias || null,
+        printName: formData.printName || null,
         openingBalance: formData.openingBalance,
         openingBalanceType: formData.openingBalanceType,
+        prevYearBalance: formData.prevYearBalance,
+        prevYearBalanceType: formData.prevYearBalanceType,
+        address: formData.address || null,
+        country: formData.country || null,
+        typeOfDealer: formData.typeOfDealer || null,
+        gst: formData.gst || null,
+        cnic: formData.cnic || null,
+        itPan: formData.itPan || null,
+        email: formData.email || null,
+        mobileNo: formData.mobileNo || null,
+        telNo: formData.telNo || null,
+        contactPerson: formData.contactPerson || null,
+        station: formData.station || null,
+        tin: formData.tin || null,
+        ward: formData.ward || null,
+        whatsappNo: formData.whatsappNo || null,
+        fax: formData.fax || null,
+        transport: formData.transport || null,
         maintainBillByBill: false,
         creditDaysForSale: 0,
         creditDaysForPurchase: 0,
@@ -67,8 +105,28 @@
       formData = {
         groupId: groups[0]?.id || 0,
         name: "",
+        alias: "",
+        printName: "",
         openingBalance: 0,
         openingBalanceType: "Debit",
+        prevYearBalance: 0,
+        prevYearBalanceType: "Debit",
+        address: "",
+        country: "",
+        typeOfDealer: "",
+        gst: "",
+        cnic: "",
+        itPan: "",
+        email: "",
+        mobileNo: "",
+        telNo: "",
+        contactPerson: "",
+        station: "",
+        tin: "",
+        ward: "",
+        whatsappNo: "",
+        fax: "",
+        transport: "",
       };
       showForm = false;
       await loadData();
@@ -99,59 +157,241 @@
 
   {#if showForm}
     <div
-      class="bg-neutral-800 border border-gray-600 rounded p-4 mb-6 max-w-md"
+      class="bg-neutral-800 border border-gray-600 rounded p-4 mb-6 max-w-4xl"
     >
-      <h3 class="font-bold mb-4">Create Account</h3>
+      <h3 class="font-bold mb-4 text-xl">Create Account</h3>
       <div class="space-y-4">
-        <div>
-          <label for="groupId" class="block text-sm font-medium mb-1">
-            Account Group
-          </label>
-          <select
-            id="groupId"
-            bind:value={formData.groupId}
-            class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
-          >
-            {#each groups as group}
-              <option value={group.id}>{group.name}</option>
-            {/each}
-          </select>
+        <!-- General Info Section -->
+        <div class="bg-neutral-700 p-4 rounded">
+          <h4 class="font-semibold mb-3">General Info.</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="groupId" class="block text-sm font-medium mb-1">
+                Group
+              </label>
+              <select
+                id="groupId"
+                bind:value={formData.groupId}
+                class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
+              >
+                {#each groups as group}
+                  <option value={group.id}>{group.name}</option>
+                {/each}
+              </select>
+            </div>
+
+            <Input
+              name="name"
+              label="Name (Alias)"
+              type="text"
+              bind:value={formData.name}
+              required
+            />
+
+            <Input
+              name="printName"
+              label="Print Name"
+              type="text"
+              bind:value={formData.printName}
+            />
+
+            <Input
+              name="alias"
+              label="Alias"
+              type="text"
+              bind:value={formData.alias}
+            />
+          </div>
         </div>
 
-        <Input
-          name="name"
-          label="Account Name"
-          type="text"
-          bind:value={formData.name}
-          required
-        />
+        <!-- Balance Section -->
+        <div class="bg-neutral-700 p-4 rounded">
+          <h4 class="font-semibold mb-3">Opening Balances</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex gap-2">
+              <div class="flex-1">
+                <Input
+                  name="openingBalance"
+                  label="Op. Bal."
+                  type="number"
+                  step="0.01"
+                  bind:value={formData.openingBalance}
+                />
+              </div>
+              <div class="w-32">
+                <label for="balanceType" class="block text-sm font-medium mb-1">
+                  Dr/Cr
+                </label>
+                <select
+                  id="balanceType"
+                  bind:value={formData.openingBalanceType}
+                  class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
+                >
+                  <option value="Debit">D</option>
+                  <option value="Credit">C</option>
+                </select>
+              </div>
+            </div>
 
-        <Input
-          name="openingBalance"
-          label="Opening Balance"
-          type="number"
-          step="0.01"
-          bind:value={formData.openingBalance}
-        />
+            <div class="flex gap-2">
+              <div class="flex-1">
+                <Input
+                  name="prevYearBalance"
+                  label="Prev. Year Bal."
+                  type="number"
+                  step="0.01"
+                  bind:value={formData.prevYearBalance}
+                />
+              </div>
+              <div class="w-32">
+                <label for="prevBalanceType" class="block text-sm font-medium mb-1">
+                  Dr/Cr
+                </label>
+                <select
+                  id="prevBalanceType"
+                  bind:value={formData.prevYearBalanceType}
+                  class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
+                >
+                  <option value="Debit">D</option>
+                  <option value="Credit">C</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <div>
-          <label for="balanceType" class="block text-sm font-medium mb-1">
-            Balance Type
-          </label>
-          <select
-            id="balanceType"
-            bind:value={formData.openingBalanceType}
-            class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
-          >
-            <option value="Debit">Debit</option>
-            <option value="Credit">Credit</option>
-          </select>
+        <!-- Address Section -->
+        <div class="bg-neutral-700 p-4 rounded">
+          <h4 class="font-semibold mb-3">Address</h4>
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <Input
+                name="address"
+                label="Address"
+                type="text"
+                bind:value={formData.address}
+              />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                name="country"
+                label="Country"
+                type="text"
+                bind:value={formData.country}
+              />
+              <Input
+                name="typeOfDealer"
+                label="Type of Dealer"
+                type="text"
+                bind:value={formData.typeOfDealer}
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Tax & Registration Section -->
+        <div class="bg-neutral-700 p-4 rounded">
+          <h4 class="font-semibold mb-3">Tax & Registration</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              name="gst"
+              label="GST"
+              type="text"
+              bind:value={formData.gst}
+            />
+            <Input
+              name="cnic"
+              label="CNIC"
+              type="text"
+              bind:value={formData.cnic}
+            />
+            <Input
+              name="itPan"
+              label="IT PAN"
+              type="text"
+              bind:value={formData.itPan}
+            />
+            <Input
+              name="tin"
+              label="TIN"
+              type="text"
+              bind:value={formData.tin}
+            />
+            <Input
+              name="ward"
+              label="Ward"
+              type="text"
+              bind:value={formData.ward}
+            />
+          </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="bg-neutral-700 p-4 rounded">
+          <h4 class="font-semibold mb-3">Contact Information</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              name="email"
+              label="E-Mail"
+              type="email"
+              bind:value={formData.email}
+            />
+            <Input
+              name="mobileNo"
+              label="Mobile No."
+              type="text"
+              bind:value={formData.mobileNo}
+            />
+            <Input
+              name="whatsappNo"
+              label="WhatsApp No. (Country code w/o '+' , 0' e.g. 9199XXXXXXXX)"
+              type="text"
+              bind:value={formData.whatsappNo}
+            />
+            <Input
+              name="telNo"
+              label="Tel. No."
+              type="text"
+              bind:value={formData.telNo}
+            />
+            <Input
+              name="fax"
+              label="Fax"
+              type="text"
+              bind:value={formData.fax}
+            />
+            <Input
+              name="contactPerson"
+              label="Contact Person"
+              type="text"
+              bind:value={formData.contactPerson}
+            />
+          </div>
+        </div>
+
+        <!-- Other Details Section -->
+        <div class="bg-neutral-700 p-4 rounded">
+          <h4 class="font-semibold mb-3">Other Details</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              name="station"
+              label="Station"
+              type="text"
+              bind:value={formData.station}
+            />
+            <Input
+              name="transport"
+              label="Transport"
+              type="text"
+              bind:value={formData.transport}
+            />
+          </div>
         </div>
 
         <button
           onclick={handleSubmit}
           disabled={!formData.name || formData.groupId === 0 || loading}
-          class="w-full p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded"
+          class="w-full p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded font-semibold"
         >
           {loading ? "Creating..." : "Create Account"}
         </button>
