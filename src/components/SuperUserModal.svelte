@@ -1,6 +1,8 @@
 <script lang="ts">
   import { companyService } from "../lib/services/companyService";
   import Input from "./Input.svelte";
+  import { createFocusTrap } from "../lib/hooks/useFocusTrap";
+  import { onMount } from "svelte";
 
   let {
     companyId,
@@ -17,6 +19,14 @@
   let username = $state("");
   let password = $state("");
   let confirmPassword = $state("");
+  let modalElement: HTMLElement;
+
+  onMount(() => {
+    if (modalElement) {
+      const trap = createFocusTrap(modalElement, () => oncancel?.());
+      return () => trap.destroy();
+    }
+  });
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
@@ -41,11 +51,17 @@
 
 <div
   class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="superuser-title"
 >
   <div
+    bind:this={modalElement}
     class="bg-neutral-900 border border-neutral-700 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl"
   >
-    <h2 class="text-2xl font-bold text-white mb-2">Create SuperUser</h2>
+    <h2 id="superuser-title" class="text-2xl font-bold text-white mb-2">
+      Create SuperUser
+    </h2>
     <p class="text-neutral-400 mb-6 text-sm">
       Every company needs a SuperUser for administration.
     </p>

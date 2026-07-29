@@ -11,6 +11,19 @@ Take control of your business finances and inventory with Billable—a comprehen
 - **Desktop-based** - Work offline with full reliability and security
 - **Complete Solution** - All accounting and inventory tools in one place
 - **Professional** - Generate invoices, reports, and financial statements instantly
+- **Keyboard Accessible** - Fully usable with only the keyboard, no mouse required
+
+## Accessibility
+
+Billable is designed to be fully accessible with keyboard-only navigation:
+
+- **Complete keyboard support** - Every feature accessible without a mouse
+- **Global keyboard shortcuts** - F1-F12 and Alt/Ctrl combinations for quick access
+- **Focus management** - Clear visual indicators and logical tab order
+- **Screen reader friendly** - ARIA labels and semantic HTML throughout
+- **Skip navigation** - Jump directly to main content
+
+Press **F1** anytime to see the complete keyboard shortcuts reference. See [KEYBOARD_ACCESSIBILITY.md](KEYBOARD_ACCESSIBILITY.md) for full details.
 
 ## What You Can Do
 

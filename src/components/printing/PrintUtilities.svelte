@@ -5,6 +5,8 @@
   import Button from "../Button.svelte";
   import type { VoucherType, Voucher } from "../../types";
   import InvoicePreview from "./InvoicePreview.svelte";
+  import { onMount } from "svelte";
+  import { createFocusTrap } from "../../lib/hooks/useFocusTrap";
 
   let companyId = $state(0);
   let loading = $state(false);
@@ -12,6 +14,14 @@
   let vouchers = $state<Voucher[]>([]);
   let showPreview = $state(false);
   let selectedVoucher = $state<Voucher | null>(null);
+  let modalElement: HTMLElement;
+
+  $effect(() => {
+    if (showPreview && modalElement) {
+      const trap = createFocusTrap(modalElement, closePreview);
+      return () => trap.destroy();
+    }
+  });
 
   const inventoryVoucherTypes: VoucherType[] = [
     "Sales",
@@ -61,7 +71,7 @@
           companyId,
           filters.voucherType,
           filters.startDate,
-          filters.endDate
+          filters.endDate,
         );
         vouchers = allVouchers;
       } else {
@@ -71,10 +81,10 @@
           companyId,
           filters.voucherType,
           filters.startDate,
-          filters.endDate
+          filters.endDate,
         );
         vouchers = allVouchers.filter(
-          (v) => v.vchNo >= filters.startVchNo && v.vchNo <= filters.endVchNo
+          (v) => v.vchNo >= filters.startVchNo && v.vchNo <= filters.endVchNo,
         );
       }
     } catch (err) {
@@ -321,21 +331,22 @@
 
 <!-- Print Preview Modal -->
 {#if showPreview && selectedVoucher}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-    onclick={(e) => {
-      if (e.target === e.currentTarget) closePreview();
-    }}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="preview-title"
   >
     <div
+      bind:this={modalElement}
       class="bg-neutral-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto"
     >
       <div
         class="sticky top-0 bg-neutral-900 border-b border-neutral-800 p-4 flex items-center justify-between"
       >
-        <h2 class="text-xl font-bold text-white">Print Preview</h2>
+        <h2 id="preview-title" class="text-xl font-bold text-white">
+          Print Preview
+        </h2>
         <div class="flex gap-2">
           <Button variant="primary" onclick={() => window.print()}>
             Print

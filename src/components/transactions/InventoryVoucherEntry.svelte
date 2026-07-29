@@ -335,8 +335,11 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="text-sm font-medium block mb-1">Party Account</label>
+        <label for="partyAccountId" class="text-sm font-medium block mb-1"
+          >Party Account</label
+        >
         <select
+          id="partyAccountId"
           value={header.partyAccountId}
           onchange={(e) =>
             (header.partyAccountId = Number(
@@ -349,8 +352,11 @@
       </div>
       {#if isSales && saleTypes.length}
         <div>
-          <label class="text-sm font-medium block mb-1">Sale Type</label>
+          <label for="saleTypeId" class="text-sm font-medium block mb-1"
+            >Sale Type</label
+          >
           <select
+            id="saleTypeId"
             value={header.saleTypeId}
             onchange={(e) =>
               (header.saleTypeId = Number(
@@ -364,8 +370,11 @@
         </div>
       {:else if isPurchase && purchaseTypes.length}
         <div>
-          <label class="text-sm font-medium block mb-1">Purchase Type</label>
+          <label for="purchaseTypeId" class="text-sm font-medium block mb-1"
+            >Purchase Type</label
+          >
           <select
+            id="purchaseTypeId"
             value={header.purchaseTypeId}
             onchange={(e) =>
               (header.purchaseTypeId = Number(
@@ -588,8 +597,11 @@
   <!-- Grand Total + Narration -->
   <div class="flex gap-6 items-start mb-4">
     <div class="flex-1">
-      <label class="text-sm font-medium block mb-1">Narration</label>
+      <label for="narration" class="text-sm font-medium block mb-1"
+        >Narration</label
+      >
       <textarea
+        id="narration"
         bind:value={header.narration}
         rows="2"
         class="w-full p-2 bg-neutral-800 border border-gray-600 rounded text-sm resize-none"

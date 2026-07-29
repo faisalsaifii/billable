@@ -112,42 +112,47 @@
     </div>
   {:else}
     <div class="overflow-x-auto rounded-lg border border-neutral-800">
-      <table class="w-full">
+      <table class="w-full" role="table" aria-label="Companies list">
         <thead>
-          <tr class="bg-neutral-900">
-            <th>Name</th>
-            <th>Print Name</th>
-            <th>Country</th>
-            <th>Currency</th>
-            <th>FY Start</th>
-            <th>Actions</th>
+          <tr class="bg-neutral-900" role="row">
+            <th role="columnheader">Name</th>
+            <th role="columnheader">Print Name</th>
+            <th role="columnheader">Country</th>
+            <th role="columnheader">Currency</th>
+            <th role="columnheader">FY Start</th>
+            <th role="columnheader">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {#each companies as company (company.id)}
-            <tr>
-              <td class="font-medium">{company.name}</td>
-              <td class="text-neutral-400">{company.printName}</td>
-              <td>{company.country}</td>
-              <td>{company.currencySymbol} {company.currencyString}</td>
-              <td>{formatDate(company.fyBeginningFrom)}</td>
-              <td>
+          {#each companies as company, index (company.id)}
+            <tr data-keyboard-nav-item tabindex="0" role="row">
+              <td class="font-medium" role="cell">{company.name}</td>
+              <td class="text-neutral-400" role="cell">{company.printName}</td>
+              <td role="cell">{company.country}</td>
+              <td role="cell"
+                >{company.currencySymbol} {company.currencyString}</td
+              >
+              <td role="cell">{formatDate(company.fyBeginningFrom)}</td>
+              <td role="cell">
                 <div class="flex gap-2">
                   <button
                     onclick={() => handleOpenCompany(company)}
                     class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-md font-medium cursor-pointer transition-colors duration-150"
+                    aria-label="Open {company.name}"
                   >
                     Open
                   </button>
                   <button
                     onclick={() => handleEditCompany(company)}
                     class="px-2.5 py-1 bg-neutral-700 hover:bg-neutral-600 text-white text-xs rounded-md font-medium cursor-pointer transition-colors duration-150"
+                    aria-label="Edit {company.name}"
                   >
                     Edit
                   </button>
                   <button
                     onclick={() => handleDeleteCompany(company)}
                     class="px-2.5 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 text-xs rounded-md font-medium cursor-pointer transition-colors duration-150"
+                    aria-label="Delete {company.name}"
                   >
                     Delete
                   </button>

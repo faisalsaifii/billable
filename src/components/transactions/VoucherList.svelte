@@ -5,6 +5,7 @@
   import InvoicePreview from "../printing/InvoicePreview.svelte";
   import type { Voucher, VoucherType } from "../../types";
   import { onMount } from "svelte";
+  import { createFocusTrap } from "../../lib/hooks/useFocusTrap";
 
   let {
     voucherType,
@@ -22,6 +23,14 @@
   let fromDate = $state("");
   let toDate = $state("");
   let selectedVoucherForPrint = $state<Voucher | null>(null);
+  let modalElement: HTMLElement;
+
+  $effect(() => {
+    if (selectedVoucherForPrint && modalElement) {
+      const trap = createFocusTrap(modalElement, closePrintModal);
+      return () => trap.destroy();
+    }
+  });
 
   $effect(() => {
     const unsub = session.subscribe((s) => {
@@ -187,26 +196,27 @@
 
 <!-- Print Modal -->
 {#if selectedVoucherForPrint}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-    onclick={closePrintModal}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="print-preview-title"
   >
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
+      bind:this={modalElement}
       class="bg-neutral-900 rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
-      onclick={(e) => e.stopPropagation()}
     >
       <!-- Modal Header -->
       <div
         class="flex justify-between items-center p-4 border-b border-gray-700"
       >
-        <h2 class="text-xl font-semibold">Print Preview</h2>
+        <h2 id="print-preview-title" class="text-xl font-semibold">
+          Print Preview
+        </h2>
         <button
           onclick={closePrintModal}
-          class="text-gray-400 hover:text-white text-2xl">&times;</button
+          class="text-gray-400 hover:text-white text-2xl"
+          aria-label="Close print preview">&times;</button
         >
       </div>
 

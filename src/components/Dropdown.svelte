@@ -89,14 +89,19 @@
     }}
     {disabled}
     onkeydown={handleKeydown}
+    aria-haspopup="true"
+    aria-expanded={showDropdown}
   >
     {text}
-    <span class="ml-1 text-xs">{showDropdown ? "▲" : "▼"}</span>
+    <span class="ml-1 text-xs" aria-hidden="true"
+      >{showDropdown ? "▲" : "▼"}</span
+    >
   </Button>
   {#if showDropdown && !disabled}
     <div
       class="absolute border border-neutral-700 bg-neutral-900 flex items-stretch z-50 flex-col p-1.5 mt-2 min-w-max rounded-lg shadow-xl shadow-black/40"
       role="menu"
+      aria-label="{text} menu"
     >
       {#each options as option, index}
         <button
@@ -106,6 +111,8 @@
             ? 'text-blue-400 font-medium'
             : 'text-neutral-200'}"
           role="menuitem"
+          tabindex={focusedIndex === index ? 0 : -1}
+          aria-current={activeOption === option.text ? "true" : undefined}
           onclick={() => {
             showDropdown = false;
             focusedIndex = -1;
@@ -114,13 +121,15 @@
           onmouseenter={() => (focusedIndex = index)}
         >
           {#if activeOption === option.text}
-            <span class="mr-1.5 text-blue-400">•</span>
+            <span class="mr-1.5 text-blue-400" aria-hidden="true">•</span>
           {/if}
           {option.text}
         </button>
       {/each}
       {#if options.length == 0}
-        <span class="px-3 py-1.5 text-gray-500 text-sm">No options</span>
+        <span class="px-3 py-1.5 text-gray-500 text-sm" role="menuitem"
+          >No options</span
+        >
       {/if}
     </div>
   {/if}

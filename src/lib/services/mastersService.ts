@@ -225,7 +225,6 @@ const DEFAULT_ACCOUNTS: {
     groupName: "Stock Adjustments",
     isPredefined: false,
   },
-  { name: "Trade Debtors", groupName: "Sundry Debtors", isPredefined: false },
   { name: "CGST Input", groupName: "Duties & Taxes", isPredefined: false },
   { name: "SGST Input", groupName: "Duties & Taxes", isPredefined: false },
   { name: "IGST Input", groupName: "Duties & Taxes", isPredefined: false },
@@ -244,11 +243,6 @@ const DEFAULT_ACCOUNTS: {
     isPredefined: false,
   },
   { name: "Provision for Tax", groupName: "Provisions", isPredefined: false },
-  {
-    name: "Trade Creditors",
-    groupName: "Sundry Creditors",
-    isPredefined: false,
-  },
   {
     name: "Furniture & Fixtures",
     groupName: "Fixed Assets",
@@ -603,12 +597,12 @@ class MastersService {
           `INSERT OR IGNORE INTO account_groups
            (companyId,name,parentGroupId,accountType,sequenceNo,isPredefined,affectsGrossProfit,createdAt,updatedAt)
            VALUES (?1,?2,null,?3,?4,1,0,?5,?6)`,
-          [companyId, g.name, g.accountType, g.seq, now, now]
+          [companyId, g.name, g.accountType, g.seq, now, now],
         );
       } catch (_) {}
       const rows = await this.db.select<{ id: number }[]>(
         "SELECT id FROM account_groups WHERE companyId=?1 AND name=?2",
-        [companyId, g.name]
+        [companyId, g.name],
       );
       if (rows[0]) groupIdMap.set(g.name, rows[0].id);
     }
@@ -621,12 +615,12 @@ class MastersService {
           `INSERT OR IGNORE INTO account_groups
            (companyId,name,parentGroupId,accountType,sequenceNo,isPredefined,affectsGrossProfit,createdAt,updatedAt)
            VALUES (?1,?2,?3,?4,?5,1,0,?6,?7)`,
-          [companyId, g.name, parentId, g.accountType, g.seq, now, now]
+          [companyId, g.name, parentId, g.accountType, g.seq, now, now],
         );
       } catch (_) {}
       const rows = await this.db.select<{ id: number }[]>(
         "SELECT id FROM account_groups WHERE companyId=?1 AND name=?2",
-        [companyId, g.name]
+        [companyId, g.name],
       );
       if (rows[0]) groupIdMap.set(g.name, rows[0].id);
     }
@@ -640,7 +634,7 @@ class MastersService {
           `INSERT OR IGNORE INTO accounts
            (companyId,groupId,name,openingBalance,openingBalanceType,isPredefined,active,createdAt,updatedAt)
            VALUES (?1,?2,?3,0,'Debit',?4,1,?5,?6)`,
-          [companyId, groupId, a.name, a.isPredefined ? 1 : 0, now, now]
+          [companyId, groupId, a.name, a.isPredefined ? 1 : 0, now, now],
         );
       } catch (_) {}
     }
@@ -650,7 +644,7 @@ class MastersService {
       await this.db.execute(
         `INSERT OR IGNORE INTO item_groups (companyId,name,sequenceNo,createdAt,updatedAt)
          VALUES (?1,'General',1,?2,?3)`,
-        [companyId, now, now]
+        [companyId, now, now],
       );
     } catch (_) {}
   }
@@ -658,7 +652,7 @@ class MastersService {
   // ==================== ACCOUNT GROUPS ====================
 
   async createAccountGroup(
-    data: Omit<AccountGroup, "id" | "createdAt" | "updatedAt">
+    data: Omit<AccountGroup, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -677,10 +671,10 @@ class MastersService {
         data.isPredefined ? 1 : 0,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -689,7 +683,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM account_groups WHERE companyId=?1 ORDER BY sequenceNo,name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -697,7 +691,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<AccountGroup, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -708,7 +702,7 @@ class MastersService {
       `UPDATE account_groups SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -716,14 +710,14 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     await this.db.execute(
       "DELETE FROM account_groups WHERE id=?1 AND isPredefined=0",
-      [id]
+      [id],
     );
   }
 
   // ==================== ACCOUNTS ====================
 
   async createAccount(
-    data: Omit<Account, "id" | "createdAt" | "updatedAt">
+    data: Omit<Account, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -750,10 +744,10 @@ class MastersService {
         data.active ? 1 : 0,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -762,7 +756,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM accounts WHERE companyId=?1 AND active=1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -770,13 +764,15 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM accounts WHERE groupId=?1 AND active=1 ORDER BY name",
-      [groupId]
+      [groupId],
     );
   }
 
   async updateAccount(
     id: number,
-    data: Partial<Omit<Account, "id" | "companyId" | "createdAt" | "updatedAt">>
+    data: Partial<
+      Omit<Account, "id" | "companyId" | "createdAt" | "updatedAt">
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -787,7 +783,7 @@ class MastersService {
       `UPDATE accounts SET ${fields}, updatedAt=?${keys.length + 1} WHERE id=?${
         keys.length + 2
       }`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -795,14 +791,14 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     await this.db.execute(
       "DELETE FROM accounts WHERE id=?1 AND isPredefined=0",
-      [id]
+      [id],
     );
   }
 
   // ==================== ITEM GROUPS ====================
 
   async createItemGroup(
-    data: Omit<ItemGroup, "id" | "createdAt" | "updatedAt">
+    data: Omit<ItemGroup, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -819,10 +815,10 @@ class MastersService {
         data.sequenceNo || 0,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -831,7 +827,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM item_groups WHERE companyId=?1 ORDER BY sequenceNo,name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -839,7 +835,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<ItemGroup, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -850,7 +846,7 @@ class MastersService {
       `UPDATE item_groups SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -862,7 +858,7 @@ class MastersService {
   // ==================== ITEMS ====================
 
   async createItem(
-    data: Omit<Item, "id" | "createdAt" | "updatedAt">
+    data: Omit<Item, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -893,10 +889,10 @@ class MastersService {
         data.active ? 1 : 0,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -905,7 +901,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM items WHERE companyId=?1 AND active=1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -913,13 +909,13 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM items WHERE groupId=?1 AND active=1 ORDER BY name",
-      [groupId]
+      [groupId],
     );
   }
 
   async updateItem(
     id: number,
-    data: Partial<Omit<Item, "id" | "companyId" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<Item, "id" | "companyId" | "createdAt" | "updatedAt">>,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -930,7 +926,7 @@ class MastersService {
       `UPDATE items SET ${fields}, updatedAt=?${keys.length + 1} WHERE id=?${
         keys.length + 2
       }`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -942,7 +938,7 @@ class MastersService {
   // ==================== UNITS ====================
 
   async createUnit(
-    data: Omit<Unit, "id" | "createdAt" | "updatedAt">
+    data: Omit<Unit, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -956,10 +952,10 @@ class MastersService {
         data.description || null,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -968,13 +964,13 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM units WHERE companyId=?1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
   async updateUnit(
     id: number,
-    data: Partial<Omit<Unit, "id" | "companyId" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<Unit, "id" | "companyId" | "createdAt" | "updatedAt">>,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -985,7 +981,7 @@ class MastersService {
       `UPDATE units SET ${fields}, updatedAt=?${keys.length + 1} WHERE id=?${
         keys.length + 2
       }`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -997,7 +993,7 @@ class MastersService {
   // ==================== UNIT CONVERSIONS ====================
 
   async createUnitConversion(
-    data: Omit<UnitConversion, "id" | "createdAt" | "updatedAt">
+    data: Omit<UnitConversion, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1011,10 +1007,10 @@ class MastersService {
         data.conversionFactor,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1023,7 +1019,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM unit_conversions WHERE companyId=?1",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1035,7 +1031,7 @@ class MastersService {
   // ==================== MATERIAL CENTRES ====================
 
   async createMaterialCentre(
-    data: Omit<MaterialCentre, "id" | "createdAt" | "updatedAt">
+    data: Omit<MaterialCentre, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1052,10 +1048,10 @@ class MastersService {
         data.active ? 1 : 0,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1064,7 +1060,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM material_centres WHERE companyId=?1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1072,7 +1068,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<MaterialCentre, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1083,7 +1079,7 @@ class MastersService {
       `UPDATE material_centres SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -1095,7 +1091,7 @@ class MastersService {
   // ==================== BILL SUNDRIES ====================
 
   async createBillSundry(
-    data: Omit<BillSundry, "id" | "createdAt" | "updatedAt">
+    data: Omit<BillSundry, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1116,10 +1112,10 @@ class MastersService {
         data.active ? 1 : 0,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1128,7 +1124,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM bill_sundries WHERE companyId=?1 AND active=1 ORDER BY type,name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1136,7 +1132,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<BillSundry, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1147,7 +1143,7 @@ class MastersService {
       `UPDATE bill_sundries SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -1159,7 +1155,7 @@ class MastersService {
   // ==================== SALE TYPES ====================
 
   async createSaleType(
-    data: Omit<SaleType, "id" | "createdAt" | "updatedAt">
+    data: Omit<SaleType, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1179,10 +1175,10 @@ class MastersService {
         data.description || null,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1191,7 +1187,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM sale_types WHERE companyId=?1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1199,7 +1195,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<SaleType, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1210,7 +1206,7 @@ class MastersService {
       `UPDATE sale_types SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -1222,7 +1218,7 @@ class MastersService {
   // ==================== PURCHASE TYPES ====================
 
   async createPurchaseType(
-    data: Omit<PurchaseType, "id" | "createdAt" | "updatedAt">
+    data: Omit<PurchaseType, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1240,10 +1236,10 @@ class MastersService {
         data.description || null,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1252,7 +1248,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM purchase_types WHERE companyId=?1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1260,7 +1256,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<PurchaseType, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1271,7 +1267,7 @@ class MastersService {
       `UPDATE purchase_types SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 
@@ -1283,7 +1279,7 @@ class MastersService {
   // ==================== ST FORMS ====================
 
   async createSTForm(
-    data: Omit<STForm, "id" | "createdAt" | "updatedAt">
+    data: Omit<STForm, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1297,10 +1293,10 @@ class MastersService {
         data.description || null,
         now,
         now,
-      ]
+      ],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1309,7 +1305,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM st_forms WHERE companyId=?1 ORDER BY name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1321,17 +1317,17 @@ class MastersService {
   // ==================== STANDARD NARRATIONS ====================
 
   async createStandardNarration(
-    data: Omit<StandardNarration, "id" | "createdAt" | "updatedAt">
+    data: Omit<StandardNarration, "id" | "createdAt" | "updatedAt">,
   ): Promise<number> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
     await this.db.execute(
       `INSERT INTO standard_narrations (companyId,name,voucherType,createdAt,updatedAt)
        VALUES (?1,?2,?3,?4,?5)`,
-      [data.companyId, data.name, data.voucherType || null, now, now]
+      [data.companyId, data.name, data.voucherType || null, now, now],
     );
     const r = await this.db.select<{ id: number }[]>(
-      "SELECT last_insert_rowid() as id"
+      "SELECT last_insert_rowid() as id",
     );
     return r[0]?.id || 0;
   }
@@ -1340,7 +1336,7 @@ class MastersService {
     if (!this.db) throw new Error("Database not initialized");
     return await this.db.select(
       "SELECT * FROM standard_narrations WHERE companyId=?1 ORDER BY voucherType,name",
-      [companyId]
+      [companyId],
     );
   }
 
@@ -1348,7 +1344,7 @@ class MastersService {
     id: number,
     data: Partial<
       Omit<StandardNarration, "id" | "companyId" | "createdAt" | "updatedAt">
-    >
+    >,
   ): Promise<void> {
     if (!this.db) throw new Error("Database not initialized");
     const now = new Date().toISOString();
@@ -1359,7 +1355,7 @@ class MastersService {
       `UPDATE standard_narrations SET ${fields}, updatedAt=?${
         keys.length + 1
       } WHERE id=?${keys.length + 2}`,
-      [...Object.values(data), now, id]
+      [...Object.values(data), now, id],
     );
   }
 

@@ -2,7 +2,8 @@
   import { companyService } from "../lib/services/companyService";
   import type { Company } from "../types";
   import Input from "./Input.svelte";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
+  import { createFocusTrap } from "../lib/hooks/useFocusTrap";
 
   const dispatch = createEventDispatcher();
 
@@ -12,6 +13,22 @@
   let error = "";
   let step: "confirm" | "superuser" = "confirm";
   let superUserPassword = "";
+  let modalElement: HTMLElement;
+
+  $: if (modalElement) {
+    setupFocusTrap();
+  }
+
+  function setupFocusTrap() {
+    if (modalElement) {
+      const trap = createFocusTrap(modalElement, handleCancel);
+      return () => trap.destroy();
+    }
+  }
+
+  onMount(() => {
+    return setupFocusTrap();
+  });
 
   const handleConfirmDelete = async (event: Event) => {
     event.preventDefault();
@@ -54,11 +71,20 @@
 {#if step === "confirm"}
   <div
     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-confirm-title"
   >
     <div
+      bind:this={modalElement}
       class="bg-neutral-900 border border-red-700/50 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl"
     >
-      <h2 class="text-2xl font-bold text-red-400 mb-4">Delete Company</h2>
+      <h2
+        id="delete-confirm-title"
+        class="text-2xl font-bold text-red-400 mb-4"
+      >
+        Delete Company
+      </h2>
       <p class="text-neutral-300 mb-6">
         Are you sure you want to delete company <span class="font-bold"
           >{company.name}</span
@@ -88,11 +114,20 @@
 {:else if step === "superuser"}
   <div
     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-superuser-title"
   >
     <div
+      bind:this={modalElement}
       class="bg-neutral-900 border border-red-700/50 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl"
     >
-      <h2 class="text-2xl font-bold text-red-400 mb-4">Confirm Deletion</h2>
+      <h2
+        id="delete-superuser-title"
+        class="text-2xl font-bold text-red-400 mb-4"
+      >
+        Confirm Deletion
+      </h2>
       <p class="text-neutral-300 mb-6">
         Enter SuperUser password to confirm deletion of <span class="font-bold"
           >{company.name}</span

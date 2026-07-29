@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { companyService } from "../lib/services/companyService";
   import type { Company } from "../types";
   import Input from "./Input.svelte";
+  import { createFocusTrap } from "../lib/hooks/useFocusTrap";
 
   const dispatch = createEventDispatcher();
 
@@ -12,6 +13,14 @@
   let error = "";
   let username = "";
   let password = "";
+  let modalElement: HTMLElement;
+
+  onMount(() => {
+    if (modalElement) {
+      const trap = createFocusTrap(modalElement, handleCancel);
+      return () => trap.destroy();
+    }
+  });
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
@@ -28,7 +37,7 @@
       const isValid = await companyService.validateLogin(
         company.id,
         username,
-        password
+        password,
       );
 
       if (!isValid) {
@@ -52,11 +61,15 @@
 
 <div
   class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="login-title"
 >
   <div
+    bind:this={modalElement}
     class="bg-neutral-900 border border-neutral-700 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl"
   >
-    <h2 class="text-2xl font-bold text-white mb-1">Login</h2>
+    <h2 id="login-title" class="text-2xl font-bold text-white mb-1">Login</h2>
     <p class="text-neutral-400 text-sm mb-6">{company.name}</p>
 
     {#if error}

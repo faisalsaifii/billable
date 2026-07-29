@@ -588,9 +588,12 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
 <main class="flex flex-col h-screen bg-[#0a0a0a]">
   <nav
     class="flex items-center gap-1 px-3 py-2 bg-neutral-900/80 border-b border-neutral-800 backdrop-blur-sm"
+    aria-label="Main navigation"
   >
     <Button
       onclick={() => {
@@ -598,9 +601,10 @@
         navigation.navigateTo("HOME");
         activeSubmenu = "";
       }}
-      variant="ghost">Home</Button
+      variant="ghost"
+      aria-label="Home">Home</Button
     >
-    <div class="w-px h-5 bg-neutral-700 mx-1"></div>
+    <div class="w-px h-5 bg-neutral-700 mx-1" aria-hidden="true"></div>
     {#each mainOptions as { text, options, activeOption }}
       <DropDown
         {text}
@@ -618,12 +622,14 @@
       onclick={() => (showShortcuts = true)}
       variant="ghost"
       styles="gap-2"
+      aria-label="Show keyboard shortcuts (F1)"
     >
       <svg
         class="w-4 h-4"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           stroke-linecap="round"
@@ -635,7 +641,7 @@
     </Button>
   </nav>
 
-  <div class="flex-1 overflow-auto">
+  <div id="main-content" class="flex-1 overflow-auto" role="main">
     {#if currentView == "CREATE_COMPANY"}
       <CreateCompany />
     {/if}

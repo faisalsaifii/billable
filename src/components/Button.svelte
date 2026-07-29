@@ -6,6 +6,15 @@
     disabled = false,
     variant = "default",
     children,
+    ...rest
+  }: {
+    onclick?: (e: MouseEvent) => void;
+    onkeydown?: (e: KeyboardEvent) => void;
+    styles?: string;
+    disabled?: boolean;
+    variant?: "default" | "primary" | "danger" | "ghost";
+    children?: any;
+    [key: string]: any;
   } = $props();
 
   const variants: Record<string, string> = {
@@ -23,6 +32,7 @@
   {onclick}
   {onkeydown}
   {disabled}
+  {...rest}
 >
   {@render children?.()}
 </button>
