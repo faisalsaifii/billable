@@ -18,6 +18,7 @@
   let companyId = $state(0);
   let accounts: Account[] = $state([]);
   let loading = $state(false);
+  let loadingAccounts = $state(false);
   let error = $state("");
   let successMsg = $state("");
   let nextVchNo = $state("");
@@ -48,16 +49,30 @@
 
   onMount(async () => {
     await companyService.initialize();
-    accounts = await mastersService.getAccounts(companyId);
-    if (accounts.length) {
-      lines[0].accountId = accounts[0].id;
-      lines[1].accountId = accounts[0].id;
+    if (!companyId) {
+      error = "No active company selected. Please select a company first.";
+      return;
     }
-    nextVchNo = await voucherService.getNextVoucherNo(
-      companyId,
-      voucherType,
-      formHeader.series,
-    );
+    loadingAccounts = true;
+    try {
+      accounts = await mastersService.getAccounts(companyId);
+      if (accounts.length === 0) {
+        error =
+          "No accounts found. Please create at least one account in Masters → Accounts before creating vouchers.";
+        return;
+      }
+      if (accounts.length) {
+        lines[0].accountId = accounts[0].id;
+        lines[1].accountId = accounts[0].id;
+      }
+      nextVchNo = await voucherService.getNextVoucherNo(
+        companyId,
+        voucherType,
+        formHeader.series,
+      );
+    } finally {
+      loadingAccounts = false;
+    }
   });
 
   const addLine = () => {
@@ -85,16 +100,65 @@
   );
   const isBalanced = $derived(Math.abs(totalDebit - totalCredit) < 0.005);
 
+  // Comprehensive validation state
+  const validationErrors = $derived.by(() => {
+    const errors: string[] = [];
+
+    if (!companyId) {
+      errors.push("No active company selected");
+      return errors;
+    }
+
+    if (loadingAccounts) {
+      errors.push("Loading accounts...");
+      return errors;
+    }
+
+    if (accounts.length === 0) {
+      errors.push("No accounts available - create accounts first");
+      return errors;
+    }
+
+    if (lines.length < 2) {
+      errors.push("At least two lines are required");
+    }
+
+    const validAccountIds = new Set(accounts.map((a) => a.id));
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.accountId || line.accountId === 0) {
+        errors.push(`Line ${i + 1}: Select an account`);
+      } else if (!validAccountIds.has(line.accountId)) {
+        errors.push(`Line ${i + 1}: Invalid account - reload page`);
+      }
+      if (!line.amount || line.amount <= 0) {
+        errors.push(`Line ${i + 1}: Amount must be greater than 0`);
+      }
+    }
+
+    if (!isBalanced) {
+      errors.push(
+        `Voucher not balanced (difference: ${Math.abs(totalDebit - totalCredit).toFixed(2)})`,
+      );
+    }
+
+    if (totalDebit === 0 && totalCredit === 0) {
+      errors.push("Voucher total cannot be zero");
+    }
+
+    return errors;
+  });
+
+  const isFormValid = $derived(validationErrors.length === 0);
+
   const handleSubmit = async () => {
     error = "";
     successMsg = "";
 
-    if (!isBalanced) {
-      error = "Debit and Credit totals must match";
-      return;
-    }
-    if (lines.some((l) => !l.accountId || !l.amount)) {
-      error = "All lines must have an account and amount";
+    // All validations are now in the derived state
+    // This should never happen if the button is properly disabled
+    if (!isFormValid) {
+      error = validationErrors.join("; ");
       return;
     }
 
@@ -165,6 +229,16 @@
       class="bg-green-900 text-green-100 p-3 rounded mb-4 text-sm"
     >
       {successMsg}
+    </div>{/if}
+  {#if !isFormValid && !error && !loadingAccounts}<div
+      class="bg-yellow-900 text-yellow-100 p-3 rounded mb-4 text-sm"
+    >
+      <p class="font-semibold mb-1">Form is incomplete:</p>
+      <ul class="list-disc list-inside space-y-1">
+        {#each validationErrors as validationError}
+          <li>{validationError}</li>
+        {/each}
+      </ul>
     </div>{/if}
 
   <!-- Header -->
@@ -299,9 +373,21 @@
 
   <button
     onclick={handleSubmit}
-    disabled={loading || !isBalanced}
-    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold rounded"
+    disabled={loading || loadingAccounts || !isFormValid}
+    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded transition-colors"
+    title={isFormValid ? "" : "Fix form errors before saving"}
   >
-    {loading ? "Saving..." : `Save ${voucherType}`}
+    {loading
+      ? "Saving..."
+      : loadingAccounts
+        ? "Loading..."
+        : `Save ${voucherType}`}
   </button>
+  {#if !isFormValid && !loadingAccounts}
+    <p class="text-sm text-yellow-400 mt-2">
+      Fix {validationErrors.length} error{validationErrors.length !== 1
+        ? "s"
+        : ""} to enable saving
+    </p>
+  {/if}
 </div>

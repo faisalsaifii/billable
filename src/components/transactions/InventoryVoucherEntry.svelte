@@ -94,16 +94,48 @@
           mastersService.getPurchaseTypes(id),
         ]);
 
+      // Validate essential masters exist
+      if (accounts.length === 0) {
+        error =
+          "No accounts found. Please create at least one account in Masters → Accounts before creating vouchers.";
+        return;
+      }
+      if (items.length === 0) {
+        error =
+          "No items found. Please create at least one item in Masters → Items before creating vouchers.";
+        return;
+      }
+      if (units.length === 0) {
+        error =
+          "No units found. Please create at least one unit in Masters → Units before creating vouchers.";
+        return;
+      }
+      if (isPurchase && purchaseTypes.length === 0) {
+        error =
+          "No purchase types found. Please create at least one purchase type in Masters → Purchase Types before creating purchase vouchers.";
+        return;
+      }
+      if (isSales && saleTypes.length === 0) {
+        error =
+          "No sale types found. Please create at least one sale type in Masters → Sale Types before creating sales vouchers.";
+        return;
+      }
+
       header.partyAccountId = accounts[0]?.id || 0;
       header.saleTypeId = saleTypes[0]?.id || 0;
       header.purchaseTypeId = purchaseTypes[0]?.id || 0;
 
       const firstItem = items[0];
+      const defaultUnitId = firstItem?.mainUnitId || units[0]?.id || 0;
+
+      // Ensure unit ID is valid or null, never 0
+      const validUnitId = defaultUnitId > 0 ? defaultUnitId : units[0]?.id || 0;
+
       itemLines = [
         {
           itemId: firstItem?.id || 0,
           qty: 1,
-          unitId: firstItem?.mainUnitId || units[0]?.id || 0,
+          unitId: validUnitId,
           rate: firstItem?.salePrice || firstItem?.purchasePrice || 0,
           discount: 0,
           amount: 0,
@@ -154,12 +186,13 @@
 
   const addItemLine = () => {
     const firstItem = items[0];
+    const defaultUnitId = firstItem?.mainUnitId || units[0]?.id || 0;
     itemLines = [
       ...itemLines,
       {
         itemId: firstItem?.id || 0,
         qty: 1,
-        unitId: firstItem?.mainUnitId || units[0]?.id || 0,
+        unitId: defaultUnitId,
         rate: 0,
         discount: 0,
         amount: 0,
@@ -177,79 +210,145 @@
   const bsTotal = $derived(bsLines.reduce((s, l) => s + (l.amount || 0), 0));
   const grandTotal = $derived(itemTotal + bsTotal);
 
+  // Comprehensive validation state
+  const validationErrors = $derived.by(() => {
+    const errors: string[] = [];
+
+    if (!companyId) {
+      errors.push("No active company selected");
+      return errors;
+    }
+
+    if (loadingMasters || mastersLoadedForCompanyId !== companyId) {
+      errors.push("Loading masters...");
+      return errors;
+    }
+
+    if (accounts.length === 0) {
+      errors.push("No accounts available - create accounts first");
+      return errors;
+    }
+
+    if (items.length === 0) {
+      errors.push("No items available - create items first");
+      return errors;
+    }
+
+    if (!header.partyAccountId) {
+      errors.push("Party account is required");
+    } else {
+      const validAccountIds = new Set(accounts.map((a) => a.id));
+      if (!validAccountIds.has(header.partyAccountId)) {
+        errors.push("Selected party account is invalid - reopen form");
+      }
+    }
+
+    if (isPurchase && purchaseTypes.length === 0) {
+      errors.push("No purchase types available - create purchase types first");
+      return errors;
+    }
+
+    if (isSales && saleTypes.length === 0) {
+      errors.push("No sale types available - create sale types first");
+      return errors;
+    }
+
+    if (isPurchase && purchaseTypes.length > 0 && !header.purchaseTypeId) {
+      errors.push("Purchase type is required");
+    } else if (isPurchase && header.purchaseTypeId) {
+      const validPurchaseTypeIds = new Set(purchaseTypes.map((p) => p.id));
+      if (!validPurchaseTypeIds.has(header.purchaseTypeId)) {
+        errors.push("Selected purchase type is invalid - reopen form");
+      }
+    }
+
+    if (isSales && saleTypes.length > 0 && !header.saleTypeId) {
+      errors.push("Sale type is required");
+    } else if (isSales && header.saleTypeId) {
+      const validSaleTypeIds = new Set(saleTypes.map((s) => s.id));
+      if (!validSaleTypeIds.has(header.saleTypeId)) {
+        errors.push("Selected sale type is invalid - reopen form");
+      }
+    }
+
+    if (itemLines.length === 0) {
+      errors.push("At least one item line is required");
+    } else {
+      const validItemIds = new Set(items.map((it) => it.id));
+      const validUnitIds = new Set(units.map((u) => u.id));
+      for (let i = 0; i < itemLines.length; i++) {
+        const line = itemLines[i];
+        if (!line.itemId || line.itemId === 0) {
+          errors.push(`Item line ${i + 1}: Select an item`);
+        } else if (!validItemIds.has(line.itemId)) {
+          errors.push(`Item line ${i + 1}: Invalid item - reopen form`);
+        }
+        if (!line.unitId || line.unitId === 0) {
+          errors.push(`Item line ${i + 1}: Unit is required`);
+        } else if (!validUnitIds.has(line.unitId)) {
+          errors.push(`Item line ${i + 1}: Invalid unit - reopen form`);
+        }
+        if (line.qty <= 0) {
+          errors.push(`Item line ${i + 1}: Quantity must be greater than 0`);
+        }
+        if (line.amount < 0) {
+          errors.push(`Item line ${i + 1}: Amount cannot be negative`);
+        }
+      }
+    }
+
+    if (bsLines.length > 0 && billSundries.length > 0) {
+      const validBillSundryIds = new Set(billSundries.map((b) => b.id));
+      for (let i = 0; i < bsLines.length; i++) {
+        const line = bsLines[i];
+        if (!line.billSundryId || line.billSundryId === 0) {
+          errors.push(`Bill sundry line ${i + 1}: Select a bill sundry`);
+        } else if (!validBillSundryIds.has(line.billSundryId)) {
+          errors.push(
+            `Bill sundry line ${i + 1}: Invalid bill sundry - reopen form`,
+          );
+        }
+      }
+    }
+
+    return errors;
+  });
+
+  const isFormValid = $derived(validationErrors.length === 0);
+
   const handleSubmit = async () => {
     error = "";
     successMsg = "";
 
-    if (!companyId) {
-      error = "No active company selected. Re-open the company and try again.";
-      return;
-    }
-    if (loadingMasters || mastersLoadedForCompanyId !== companyId) {
-      error = "Loading latest masters for this company. Please try again.";
-      return;
-    }
-    if (!header.partyAccountId) {
-      error = "Select a party account";
-      return;
-    }
-    if (!items.length) {
-      error =
-        "No items found. Create at least one item in Masters before saving this voucher.";
-      return;
-    }
-    if (!itemLines.length) {
-      error = "Add at least one item line";
-      return;
-    }
-
-    const validItemIds = new Set(items.map((it) => it.id));
-    if (
-      itemLines.some(
-        (l) =>
-          !l.itemId ||
-          !validItemIds.has(l.itemId) ||
-          l.qty <= 0 ||
-          l.amount < 0,
-      )
-    ) {
-      error =
-        "One or more item rows are invalid. Select valid items and keep quantity greater than zero.";
-      return;
-    }
-
-    if (bsLines.length) {
-      const validBillSundryIds = new Set(billSundries.map((b) => b.id));
-      if (
-        bsLines.some(
-          (b) => !b.billSundryId || !validBillSundryIds.has(b.billSundryId),
-        )
-      ) {
-        error =
-          "One or more bill sundry rows are invalid. Re-select the bill sundry and try again.";
-        return;
-      }
-    }
-
-    if (isSales && saleTypes.length && !header.saleTypeId) {
-      error = "Select a valid sale type.";
-      return;
-    }
-
-    if (isPurchase && purchaseTypes.length && !header.purchaseTypeId) {
-      error = "Select a valid purchase type.";
+    // All validations are now in the derived state
+    // This should never happen if the button is properly disabled
+    if (!isFormValid) {
+      error = validationErrors.join("; ");
       return;
     }
 
     loading = true;
     try {
+      // Debug logging to help diagnose issues
+      console.log("Saving voucher with data:", {
+        companyId,
+        partyAccountId: header.partyAccountId,
+        saleTypeId: header.saleTypeId,
+        purchaseTypeId: header.purchaseTypeId,
+        itemLines: itemLines.map((l) => ({
+          itemId: l.itemId,
+          unitId: l.unitId,
+        })),
+        mastersLoadedForCompanyId,
+      });
+
       await voucherService.createVoucher({
         companyId,
         voucherType,
         series: header.series,
         vchNo: nextVchNo,
         date: header.date,
-        partyAccountId: header.partyAccountId,
+        partyAccountId: header.partyAccountId || undefined,
         saleTypeId: isSales ? header.saleTypeId || undefined : undefined,
         purchaseTypeId: isPurchase
           ? header.purchaseTypeId || undefined
@@ -260,7 +359,7 @@
         itemLines: itemLines.map((l) => ({
           itemId: l.itemId,
           qty: l.qty,
-          unitId: l.unitId || null,
+          unitId: l.unitId > 0 ? l.unitId : null,
           rate: l.rate,
           discount: l.discount,
           amount: l.amount,
@@ -284,11 +383,12 @@
       );
 
       // Reset form
+      const defaultUnitId = items[0]?.mainUnitId || units[0]?.id || 0;
       itemLines = [
         {
           itemId: items[0]?.id || 0,
           qty: 1,
-          unitId: units[0]?.id || 0,
+          unitId: defaultUnitId,
           rate: 0,
           discount: 0,
           amount: 0,
@@ -318,6 +418,16 @@
       class="bg-green-900 text-green-100 p-3 rounded mb-4 text-sm"
     >
       {successMsg}
+    </div>{/if}
+  {#if !isFormValid && !error && !loadingMasters}<div
+      class="bg-yellow-900 text-yellow-100 p-3 rounded mb-4 text-sm"
+    >
+      <p class="font-semibold mb-1">Form is incomplete:</p>
+      <ul class="list-disc list-inside space-y-1">
+        {#each validationErrors as validationError}
+          <li>{validationError}</li>
+        {/each}
+      </ul>
     </div>{/if}
 
   <!-- Header -->
@@ -626,9 +736,21 @@
 
   <button
     onclick={handleSubmit}
-    disabled={loading || loadingMasters || !header.partyAccountId}
-    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold rounded"
+    disabled={loading || loadingMasters || !isFormValid}
+    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded transition-colors"
+    title={isFormValid ? "" : "Fix form errors before saving"}
   >
-    {loading ? "Saving..." : `Save ${voucherType}`}
+    {loading
+      ? "Saving..."
+      : loadingMasters
+        ? "Loading..."
+        : `Save ${voucherType}`}
   </button>
+  {#if !isFormValid && !loadingMasters}
+    <p class="text-sm text-yellow-400 mt-2">
+      Fix {validationErrors.length} error{validationErrors.length !== 1
+        ? "s"
+        : ""} to enable saving
+    </p>
+  {/if}
 </div>
