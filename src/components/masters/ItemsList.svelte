@@ -1,7 +1,7 @@
 <script lang="ts">
   import { mastersService } from "../../lib/services/mastersService";
   import { companyService } from "../../lib/services/companyService";
-  import type { Item, ItemGroup } from "../../types";
+  import type { Item, ItemGroup, Unit } from "../../types";
   import { onMount } from "svelte";
   import Input from "../Input.svelte";
 
@@ -9,6 +9,7 @@
 
   let items: Item[] = $state([]);
   let groups: ItemGroup[] = $state([]);
+  let units: Unit[] = $state([]);
   let loading = $state(false);
   let error = $state("");
   let showForm = $state(false);
@@ -18,6 +19,7 @@
     name: "",
     hsn: "",
     gstRate: 0,
+    mainUnitId: 0,
   });
 
   const loadData = async () => {
@@ -25,10 +27,16 @@
     error = "";
     try {
       await companyService.initialize();
-      items = await mastersService.getItems(companyId);
-      groups = await mastersService.getItemGroups(companyId);
+      [items, groups, units] = await Promise.all([
+        mastersService.getItems(companyId),
+        mastersService.getItemGroups(companyId),
+        mastersService.getUnits(companyId),
+      ]);
       if (groups.length > 0 && formData.groupId === 0) {
         formData.groupId = groups[0].id;
+      }
+      if (units.length > 0 && formData.mainUnitId === 0) {
+        formData.mainUnitId = units[0].id;
       }
     } catch (err) {
       error = err instanceof Error ? err.message : "Failed to load items";
@@ -54,7 +62,7 @@
         alias: null,
         printName: null,
         description: null,
-        mainUnitId: null,
+        mainUnitId: formData.mainUnitId,
         subUnitId: null,
         conversionFactor: 1,
         openingStock: 0,
@@ -68,7 +76,13 @@
         gstRate: formData.gstRate,
         active: true,
       });
-      formData = { groupId: groups[0]?.id || 0, name: "", hsn: "", gstRate: 0 };
+      formData = {
+        groupId: groups[0]?.id || 0,
+        name: "",
+        hsn: "",
+        gstRate: 0,
+        mainUnitId: units[0]?.id || 0,
+      };
       showForm = false;
       await loadData();
     } catch (err) {
@@ -125,6 +139,21 @@
           required
         />
 
+        <div>
+          <label for="mainUnitId" class="block text-sm font-medium mb-1">
+            Unit
+          </label>
+          <select
+            id="mainUnitId"
+            bind:value={formData.mainUnitId}
+            class="w-full border border-gray-400 rounded p-2 bg-neutral-800"
+          >
+            {#each units as unit}
+              <option value={unit.id}>{unit.name}</option>
+            {/each}
+          </select>
+        </div>
+
         <Input
           name="hsn"
           label="HSN Code"
@@ -143,7 +172,10 @@
 
         <button
           onclick={handleSubmit}
-          disabled={!formData.name || formData.groupId === 0 || loading}
+          disabled={!formData.name ||
+            formData.groupId === 0 ||
+            formData.mainUnitId === 0 ||
+            loading}
           class="w-full p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded"
         >
           {loading ? "Creating..." : "Create Item"}
@@ -163,6 +195,7 @@
           <tr class="border-b border-gray-600">
             <th class="text-left p-3">Name</th>
             <th class="text-left p-3">Group</th>
+            <th class="text-left p-3">Unit</th>
             <th class="text-left p-3">HSN Code</th>
             <th class="text-left p-3">GST Rate</th>
             <th class="text-left p-3">Actions</th>
@@ -171,9 +204,11 @@
         <tbody>
           {#each items as item (item.id)}
             {@const group = groups.find((g) => g.id === item.groupId)}
+            {@const unit = units.find((u) => u.id === item.mainUnitId)}
             <tr class="border-b border-gray-700 hover:bg-neutral-800">
               <td class="p-3">{item.name}</td>
               <td class="p-3 text-sm">{group?.name || "Unknown"}</td>
+              <td class="p-3 text-sm">{unit?.name || "-"}</td>
               <td class="p-3 text-sm">{item.hsn || "-"}</td>
               <td class="p-3 text-sm">{item.gstRate}%</td>
               <td class="p-3">

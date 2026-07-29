@@ -98,12 +98,13 @@
       header.saleTypeId = saleTypes[0]?.id || 0;
       header.purchaseTypeId = purchaseTypes[0]?.id || 0;
 
+      const firstItem = items[0];
       itemLines = [
         {
-          itemId: items[0]?.id || 0,
+          itemId: firstItem?.id || 0,
           qty: 1,
-          unitId: units[0]?.id || 0,
-          rate: items[0]?.salePrice || items[0]?.purchasePrice || 0,
+          unitId: firstItem?.mainUnitId || units[0]?.id || 0,
+          rate: firstItem?.salePrice || firstItem?.purchasePrice || 0,
           discount: 0,
           amount: 0,
         },
@@ -135,6 +136,15 @@
 
   const updateItemLine = (i: number, field: keyof ItemLine, val: number) => {
     itemLines[i] = { ...itemLines[i], [field]: val };
+
+    // Auto-fill unit when item is selected
+    if (field === "itemId") {
+      const selectedItem = items.find((item) => item.id === val);
+      if (selectedItem?.mainUnitId) {
+        itemLines[i].unitId = selectedItem.mainUnitId;
+      }
+    }
+
     const line = itemLines[i];
     const gross = line.qty * line.rate;
     const disc = line.discount > 0 ? (gross * line.discount) / 100 : 0;
@@ -143,12 +153,13 @@
   };
 
   const addItemLine = () => {
+    const firstItem = items[0];
     itemLines = [
       ...itemLines,
       {
-        itemId: items[0]?.id || 0,
+        itemId: firstItem?.id || 0,
         qty: 1,
-        unitId: units[0]?.id || 0,
+        unitId: firstItem?.mainUnitId || units[0]?.id || 0,
         rate: 0,
         discount: 0,
         amount: 0,
