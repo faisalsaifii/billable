@@ -67,11 +67,7 @@ const Stats = () => {
                 className="text-center"
               >
                 <div className="text-3xl md:text-5xl font-display font-bold text-gradient mb-2">
-                  <AnimatedNumber
-                    value={stat.value}
-                    suffix={stat.suffix}
-                    decimals={stat.decimals}
-                  />
+                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {stat.label}
