@@ -13,26 +13,10 @@ const platforms = [
     description: "Windows 10 or later (64-bit)",
     primary: "Download .exe",
     secondary: "Download .msi",
-    primaryLink: "https://github.com/faisalsaifii/billable/releases/latest",
-    secondaryLink: "https://github.com/faisalsaifii/billable/releases/latest",
-  },
-  {
-    name: "macOS",
-    icon: Apple,
-    description: "macOS 12 Monterey or later",
-    primary: "Download .dmg",
-    secondary: "Apple Silicon",
-    primaryLink: "https://github.com/faisalsaifii/billable/releases/latest",
-    secondaryLink: "https://github.com/faisalsaifii/billable/releases/latest",
-  },
-  {
-    name: "Linux",
-    icon: Terminal,
-    description: "Ubuntu 20.04+, Fedora 36+, Arch",
-    primary: "Download .AppImage",
-    secondary: "Download .deb",
-    primaryLink: "https://github.com/faisalsaifii/billable/releases/latest",
-    secondaryLink: "https://github.com/faisalsaifii/billable/releases/latest",
+    primaryLink:
+      "https://github.com/faisalsaifii/billable/releases/download/v0.2.0/billable_0.2.0_x64-setup.exe",
+    secondaryLink:
+      "https://github.com/faisalsaifii/billable/releases/download/v0.2.0/billable_0.2.0_x64_en-US.msi",
   },
 ];
 
