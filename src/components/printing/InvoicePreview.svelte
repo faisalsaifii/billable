@@ -556,14 +556,46 @@
                     {formatCurrency(getTotalTaxableAmount())}
                   </td>
                 </tr>
-                <tr>
-                  <td class="text-right p-1 pr-2" colspan="6">
-                    Add : IGST @ {itemLines[0]?.gstRate || 18}.00 %
-                  </td>
-                  <td class="text-right p-1 w-24">
-                    {formatCurrency(getTotalGSTAmount())}
-                  </td>
-                </tr>
+                {#if voucher.taxAmount > 0}
+                  <tr>
+                    <td class="text-right p-1 pr-2" colspan="6">
+                      Add : Tax Amount
+                    </td>
+                    <td class="text-right p-1 w-24">
+                      {formatCurrency(voucher.taxAmount)}
+                    </td>
+                  </tr>
+                {/if}
+                {#if voucher.transportCharges > 0}
+                  <tr>
+                    <td class="text-right p-1 pr-2" colspan="6">
+                      Add : Transport Charges
+                    </td>
+                    <td class="text-right p-1 w-24">
+                      {formatCurrency(voucher.transportCharges)}
+                    </td>
+                  </tr>
+                {/if}
+                {#if voucher.otherCharges !== 0}
+                  <tr>
+                    <td class="text-right p-1 pr-2" colspan="6">
+                      {voucher.otherCharges > 0 ? "Add" : "Less"} : Other Charges
+                    </td>
+                    <td class="text-right p-1 w-24">
+                      {formatCurrency(Math.abs(voucher.otherCharges))}
+                    </td>
+                  </tr>
+                {/if}
+                {#if voucher.roundedOff !== 0}
+                  <tr>
+                    <td class="text-right p-1 pr-2" colspan="6">
+                      {voucher.roundedOff > 0 ? "Add" : "Less"} : Rounded Off
+                    </td>
+                    <td class="text-right p-1 w-24">
+                      {formatCurrency(Math.abs(voucher.roundedOff))}
+                    </td>
+                  </tr>
+                {/if}
               </tbody>
             </table>
           </div>

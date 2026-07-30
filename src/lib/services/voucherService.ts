@@ -68,12 +68,46 @@ class VoucherService {
         purchaseTypeId INTEGER,
         narration TEXT NOT NULL DEFAULT '',
         totalAmount REAL NOT NULL DEFAULT 0,
+        taxAmount REAL NOT NULL DEFAULT 0,
+        transportCharges REAL NOT NULL DEFAULT 0,
+        otherCharges REAL NOT NULL DEFAULT 0,
+        roundedOff REAL NOT NULL DEFAULT 0,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (companyId) REFERENCES companies(id) ON DELETE CASCADE,
         FOREIGN KEY (partyAccountId) REFERENCES accounts(id) ON DELETE SET NULL
       );
     `);
+
+    // Migrate existing vouchers table to add additional charges columns
+    try {
+      await this.db.execute(
+        `ALTER TABLE vouchers ADD COLUMN taxAmount REAL NOT NULL DEFAULT 0`,
+      );
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.db.execute(
+        `ALTER TABLE vouchers ADD COLUMN transportCharges REAL NOT NULL DEFAULT 0`,
+      );
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.db.execute(
+        `ALTER TABLE vouchers ADD COLUMN otherCharges REAL NOT NULL DEFAULT 0`,
+      );
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.db.execute(
+        `ALTER TABLE vouchers ADD COLUMN roundedOff REAL NOT NULL DEFAULT 0`,
+      );
+    } catch (e) {
+      // Column already exists, ignore
+    }
 
     await this.db.execute(`
       CREATE TABLE IF NOT EXISTS voucher_account_lines (
@@ -226,8 +260,9 @@ class VoucherService {
       try {
         await this.db.execute(
           `INSERT INTO vouchers (companyId,voucherType,series,vchNo,date,stockDate,partyAccountId,
-           materialCentreId,materialCentreToId,saleTypeId,purchaseTypeId,narration,totalAmount,createdAt,updatedAt)
-           VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)`,
+           materialCentreId,materialCentreToId,saleTypeId,purchaseTypeId,narration,totalAmount,
+           taxAmount,transportCharges,otherCharges,roundedOff,createdAt,updatedAt)
+           VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)`,
           [
             companyId,
             data.voucherType,
@@ -242,6 +277,10 @@ class VoucherService {
             purchaseTypeId || null,
             data.narration,
             data.totalAmount,
+            data.taxAmount || 0,
+            data.transportCharges || 0,
+            data.otherCharges || 0,
+            data.roundedOff || 0,
             now,
             now,
           ],

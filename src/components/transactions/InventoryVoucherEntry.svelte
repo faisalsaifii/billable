@@ -65,6 +65,14 @@
   ]);
   let bsLines: BSLine[] = $state([]);
 
+  // Additional Charges state
+  let additionalCharges = $state({
+    taxAmount: 0,
+    transportCharges: 0,
+    otherCharges: 0,
+    roundedOff: 0,
+  });
+
   const isSales = $derived(
     voucherType === "Sales" || voucherType === "Sales Return",
   );
@@ -208,7 +216,13 @@
     itemLines.reduce((s, l) => s + (l.amount || 0), 0),
   );
   const bsTotal = $derived(bsLines.reduce((s, l) => s + (l.amount || 0), 0));
-  const grandTotal = $derived(itemTotal + bsTotal);
+  const additionalChargesTotal = $derived(
+    additionalCharges.taxAmount +
+      additionalCharges.transportCharges +
+      additionalCharges.otherCharges +
+      additionalCharges.roundedOff,
+  );
+  const grandTotal = $derived(itemTotal + bsTotal + additionalChargesTotal);
 
   // Comprehensive validation state
   const validationErrors = $derived.by(() => {
@@ -355,6 +369,10 @@
           : undefined,
         narration: header.narration,
         totalAmount: grandTotal,
+        taxAmount: additionalCharges.taxAmount,
+        transportCharges: additionalCharges.transportCharges,
+        otherCharges: additionalCharges.otherCharges,
+        roundedOff: additionalCharges.roundedOff,
         accountLines: [],
         itemLines: itemLines.map((l) => ({
           itemId: l.itemId,
@@ -395,6 +413,12 @@
         },
       ];
       bsLines = [];
+      additionalCharges = {
+        taxAmount: 0,
+        transportCharges: 0,
+        otherCharges: 0,
+        roundedOff: 0,
+      };
       header.narration = "";
 
       // Set success message only after everything else succeeds
@@ -634,6 +658,79 @@
         </tr>
       </tfoot>
     </table>
+  </div>
+
+  <!-- Additional Charges Section -->
+  <div
+    class="bg-neutral-800 border border-gray-600 rounded overflow-hidden mb-4"
+  >
+    <div class="p-3 bg-neutral-700">
+      <span class="font-semibold text-sm">Additional Charges</span>
+    </div>
+    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="taxAmount" class="text-sm font-medium block mb-1"
+          >Tax Amount</label
+        >
+        <input
+          id="taxAmount"
+          type="number"
+          bind:value={additionalCharges.taxAmount}
+          min="0"
+          step="0.01"
+          class="w-full p-2 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
+          placeholder="0.00"
+        />
+      </div>
+      <div>
+        <label for="transportCharges" class="text-sm font-medium block mb-1"
+          >Transport Charges</label
+        >
+        <input
+          id="transportCharges"
+          type="number"
+          bind:value={additionalCharges.transportCharges}
+          min="0"
+          step="0.01"
+          class="w-full p-2 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
+          placeholder="0.00"
+        />
+      </div>
+      <div>
+        <label for="otherCharges" class="text-sm font-medium block mb-1"
+          >Other Charges</label
+        >
+        <input
+          id="otherCharges"
+          type="number"
+          bind:value={additionalCharges.otherCharges}
+          step="0.01"
+          class="w-full p-2 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
+          placeholder="0.00"
+        />
+      </div>
+      <div>
+        <label for="roundedOff" class="text-sm font-medium block mb-1"
+          >Rounded Off (+/-)</label
+        >
+        <input
+          id="roundedOff"
+          type="number"
+          bind:value={additionalCharges.roundedOff}
+          step="0.01"
+          class="w-full p-2 bg-neutral-700 border border-gray-600 rounded text-sm text-right"
+          placeholder="0.00"
+        />
+      </div>
+    </div>
+    {#if additionalChargesTotal !== 0}
+      <div class="px-4 pb-3 text-right">
+        <span class="text-sm text-gray-400">Additional Charges Total: </span>
+        <span class="font-semibold text-green-400"
+          >{additionalChargesTotal.toFixed(2)}</span
+        >
+      </div>
+    {/if}
   </div>
 
   <!-- Bill Sundries -->

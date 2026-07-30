@@ -343,6 +343,10 @@ export interface Voucher {
   purchaseTypeId: number | null;
   narration: string;
   totalAmount: number;
+  taxAmount: number;
+  transportCharges: number;
+  otherCharges: number;
+  roundedOff: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -390,6 +394,10 @@ export interface CreateVoucherDTO {
   purchaseTypeId?: number;
   narration: string;
   totalAmount: number;
+  taxAmount?: number;
+  transportCharges?: number;
+  otherCharges?: number;
+  roundedOff?: number;
   accountLines: Omit<VoucherAccountLine, "id" | "voucherId">[];
   itemLines: Omit<VoucherItemLine, "id" | "voucherId">[];
   billSundryLines: Omit<VoucherBillSundryLine, "id" | "voucherId">[];
