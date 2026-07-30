@@ -49,7 +49,7 @@ const DownloadPage = () => {
               Download <span className="text-gradient">Billable</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-              Available for all major platforms. Free and open source, forever.
+              Desktop accounting software for Windows. Free and open source.
             </p>
           </motion.div>
 

@@ -39,7 +39,13 @@ const Hero = () => {
     }),
   };
 
-  const headlineWords = ["Invoicing", "that", "feels", "like", "magic."];
+  const headlineWords = [
+    "Complete",
+    "Accounting",
+    "&",
+    "Inventory",
+    "Management.",
+  ];
 
   return (
     <section
@@ -71,7 +77,7 @@ const Hero = () => {
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
             <span className="text-sm text-primary font-medium font-display">
-              Free &amp; Open Source
+              Desktop-Based • Offline Ready
             </span>
           </motion.div>
 
@@ -87,7 +93,7 @@ const Hero = () => {
                 initial="hidden"
                 animate="visible"
                 className={`inline-block mr-3 ${
-                  word === "magic." ? "text-gradient" : ""
+                  word === "Management." ? "text-gradient" : ""
                 }`}
               >
                 {word}
@@ -101,8 +107,10 @@ const Hero = () => {
             transition={{ delay: 0.9, duration: 0.6 }}
             className="text-lg text-muted-foreground max-w-lg mb-10 font-body leading-relaxed"
           >
-            Create, send, and track professional invoices in seconds. Billable
-            automates your billing workflow so you can focus on what matters.
+            Take control of your business finances and inventory with Billable—a
+            comprehensive accounting solution designed for small and medium
+            businesses. Handle everything from multi-currency accounting to
+            multi-location inventory management.
           </motion.p>
 
           <motion.div
@@ -129,7 +137,7 @@ const Hero = () => {
               onClick={() =>
                 window.open(
                   "https://github.com/faisalsaifii/billable",
-                  "_blank"
+                  "_blank",
                 )
               }
               className="px-8 py-4 rounded-2xl border border-border text-foreground font-display font-semibold text-base hover:bg-secondary transition-colors"

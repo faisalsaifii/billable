@@ -1,19 +1,19 @@
 const brands = [
-  "Stripe",
-  "Shopify",
-  "QuickBooks",
-  "Xero",
-  "FreshBooks",
-  "Wave",
-  "PayPal",
-  "Square",
+  "Multi-Currency",
+  "Inventory Management",
+  "VAT & GST Ready",
+  "Bill-by-Bill",
+  "Multi-Location",
+  "Offline First",
+  "Trial Balance",
+  "Stock Reports",
 ];
 
 const Marquee = () => {
   return (
     <section className="py-16 border-y border-border/50 overflow-hidden">
       <p className="text-center text-xs text-muted-foreground font-display tracking-widest uppercase mb-8">
-        Trusted by teams using
+        Powerful features built-in
       </p>
       <div className="relative">
         <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />

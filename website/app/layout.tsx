@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Billable | Accounting Software",
-  description: "Extensive & Open Source",
+  title: "Billable | Complete Accounting & Inventory Management Software",
+  description:
+    "Fast, powerful desktop accounting software for small and medium businesses. Multi-currency support, multi-location inventory, offline-first, and fully keyboard accessible. Free and open source.",
 };
 
 export default function RootLayout({

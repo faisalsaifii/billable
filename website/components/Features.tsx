@@ -2,38 +2,45 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Zap, Shield, BarChart3, Clock, Send, Globe } from "lucide-react";
+import {
+  Zap,
+  Shield,
+  BarChart3,
+  Warehouse,
+  FileText,
+  Globe,
+} from "lucide-react";
 
 const features = [
   {
     icon: Zap,
-    title: "Instant Invoices",
-    desc: "Generate polished invoices in under 10 seconds with smart templates.",
+    title: "Lightning-Fast Performance",
+    desc: "Handle your entire accounting workflow without slowdowns. Desktop-based for maximum speed and reliability.",
   },
   {
-    icon: Shield,
-    title: "Bank-Grade Security",
-    desc: "End-to-end encryption keeps your financial data safe and private.",
+    icon: FileText,
+    title: "Complete Accounting",
+    desc: "General ledger, trial balance, balance sheet, and all financial reports. Full double-entry bookkeeping.",
+  },
+  {
+    icon: Warehouse,
+    title: "Multi-Location Inventory",
+    desc: "Track stock across multiple warehouses with real-time status updates and automated valuation.",
   },
   {
     icon: BarChart3,
-    title: "Real-Time Analytics",
-    desc: "Track revenue, outstanding payments, and growth at a glance.",
+    title: "Professional Reports",
+    desc: "Generate trial balances, balance sheets, stock reports, and tax summaries instantly.",
   },
   {
-    icon: Clock,
-    title: "Auto Reminders",
-    desc: "Never chase payments again. Automated follow-ups do the work.",
-  },
-  {
-    icon: Send,
-    title: "One-Click Delivery",
-    desc: "Send invoices via email, link, or WhatsApp with a single tap.",
+    icon: Shield,
+    title: "Offline & Secure",
+    desc: "Work completely offline with your data stored locally. No cloud dependency, full privacy.",
   },
   {
     icon: Globe,
-    title: "Multi-Currency",
-    desc: "Bill clients worldwide with 50+ supported currencies.",
+    title: "Multi-Currency Support",
+    desc: "Handle transactions in multiple currencies with built-in VAT, GST, and sales tax management.",
   },
 ];
 
@@ -54,9 +61,9 @@ const Features = () => {
             Features
           </span>
           <h2 className="text-4xl md:text-6xl font-display font-bold mb-4">
-            Everything you need,
+            Full-featured accounting,
             <br />
-            <span className="text-gradient">nothing you don't.</span>
+            <span className="text-gradient">simplified.</span>
           </h2>
         </motion.div>
 

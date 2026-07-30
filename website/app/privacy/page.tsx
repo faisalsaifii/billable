@@ -80,14 +80,19 @@ const PrivacyPage = () => {
                 2. Local Data Storage
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                All your accounting data, including:
+                All your business data, including:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mb-4">
-                <li>Company information</li>
-                <li>Financial records and transactions</li>
-                <li>Customer and supplier data</li>
-                <li>Inventory and product information</li>
-                <li>Reports and analytics</li>
+                <li>Company information and financial years</li>
+                <li>Chart of accounts and account groups</li>
+                <li>
+                  Financial transactions (sales, purchases, payments, receipts,
+                  journals)
+                </li>
+                <li>
+                  Inventory items, stock levels, and multi-location tracking
+                </li>
+                <li>Trial balances, balance sheets, and all reports</li>
               </ul>
               <p className="text-muted-foreground leading-relaxed">
                 is stored exclusively on your local device. You have complete

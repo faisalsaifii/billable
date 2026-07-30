@@ -32,8 +32,8 @@ const CTA = () => {
             ?
           </h2>
           <p className="text-muted-foreground text-lg max-w-lg mx-auto mb-10">
-            Join thousands of freelancers and agencies who simplified their
-            invoicing. Free forever for solo users.
+            Join businesses using Billable for comprehensive accounting and
+            inventory management. Free and open source.
           </p>
 
           <motion.div
