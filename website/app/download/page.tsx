@@ -53,7 +53,7 @@ const DownloadPage = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
+          <div className="grid md:grid-cols-1 gap-6 mb-16 max-w-md mx-auto">
             {platforms.map((platform, i) => (
               <motion.div
                 key={platform.name}
