@@ -23,7 +23,7 @@
   let fromDate = $state("");
   let toDate = $state("");
   let selectedVoucherForPrint = $state<Voucher | null>(null);
-  let modalElement: HTMLElement;
+  let modalElement = $state<HTMLElement | undefined>(undefined);
 
   $effect(() => {
     if (selectedVoucherForPrint && modalElement) {
@@ -99,16 +99,22 @@
 
   <div class="flex gap-3 mb-4 items-end">
     <div>
-      <label class="text-xs text-gray-400 block mb-1">From Date</label>
+      <label for="voucher-from-date" class="text-xs text-gray-400 block mb-1"
+        >From Date</label
+      >
       <input
+        id="voucher-from-date"
         type="date"
         bind:value={fromDate}
         class="p-1.5 bg-neutral-800 border border-gray-600 rounded text-sm"
       />
     </div>
     <div>
-      <label class="text-xs text-gray-400 block mb-1">To Date</label>
+      <label for="voucher-to-date" class="text-xs text-gray-400 block mb-1"
+        >To Date</label
+      >
       <input
+        id="voucher-to-date"
         type="date"
         bind:value={toDate}
         class="p-1.5 bg-neutral-800 border border-gray-600 rounded text-sm"

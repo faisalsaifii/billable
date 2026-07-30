@@ -89,7 +89,9 @@
     <div
       class="bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden"
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
       role="dialog"
+      tabindex="-1"
       aria-modal="true"
       aria-labelledby="shortcuts-title"
     >

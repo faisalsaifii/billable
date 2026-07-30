@@ -112,28 +112,26 @@
     </div>
   {:else}
     <div class="overflow-x-auto rounded-lg border border-neutral-800">
-      <table class="w-full" role="table" aria-label="Companies list">
+      <table class="w-full" aria-label="Companies list">
         <thead>
-          <tr class="bg-neutral-900" role="row">
-            <th role="columnheader">Name</th>
-            <th role="columnheader">Print Name</th>
-            <th role="columnheader">Country</th>
-            <th role="columnheader">Currency</th>
-            <th role="columnheader">FY Start</th>
-            <th role="columnheader">Actions</th>
+          <tr class="bg-neutral-900">
+            <th>Name</th>
+            <th>Print Name</th>
+            <th>Country</th>
+            <th>Currency</th>
+            <th>FY Start</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {#each companies as company, index (company.id)}
-            <tr data-keyboard-nav-item tabindex="0" role="row">
-              <td class="font-medium" role="cell">{company.name}</td>
-              <td class="text-neutral-400" role="cell">{company.printName}</td>
-              <td role="cell">{company.country}</td>
-              <td role="cell"
-                >{company.currencySymbol} {company.currencyString}</td
-              >
-              <td role="cell">{formatDate(company.fyBeginningFrom)}</td>
-              <td role="cell">
+            <tr data-keyboard-nav-item tabindex="0">
+              <td class="font-medium">{company.name}</td>
+              <td class="text-neutral-400">{company.printName}</td>
+              <td>{company.country}</td>
+              <td>{company.currencySymbol} {company.currencyString}</td>
+              <td>{formatDate(company.fyBeginningFrom)}</td>
+              <td>
                 <div class="flex gap-2">
                   <button
                     onclick={() => handleOpenCompany(company)}

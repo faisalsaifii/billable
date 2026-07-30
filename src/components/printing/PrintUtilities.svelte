@@ -14,7 +14,7 @@
   let vouchers = $state<Voucher[]>([]);
   let showPreview = $state(false);
   let selectedVoucher = $state<Voucher | null>(null);
-  let modalElement: HTMLElement;
+  let modalElement = $state<HTMLElement | undefined>(undefined);
 
   $effect(() => {
     if (showPreview && modalElement) {

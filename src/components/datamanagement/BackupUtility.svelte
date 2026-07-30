@@ -54,8 +54,11 @@
 
   <div class="bg-neutral-800 border border-gray-600 rounded p-4 mb-6 max-w-lg">
     <div class="mb-4">
-      <label class="block text-sm font-medium mb-2">Backup Type</label>
+      <label for="backup-type" class="block text-sm font-medium mb-2"
+        >Backup Type</label
+      >
       <select
+        id="backup-type"
         bind:value={backupType}
         class="w-full p-2 bg-neutral-700 border border-gray-500 rounded"
       >
@@ -65,8 +68,11 @@
     </div>
 
     <div class="mb-4">
-      <label class="block text-sm font-medium mb-2">Backup Path</label>
+      <label for="backup-path" class="block text-sm font-medium mb-2"
+        >Backup Path</label
+      >
       <input
+        id="backup-path"
         type="text"
         bind:value={backupPath}
         placeholder="Leave blank for default location"

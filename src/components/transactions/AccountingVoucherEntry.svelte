@@ -362,8 +362,11 @@
 
   <!-- Narration -->
   <div class="mb-4">
-    <label class="text-sm font-medium block mb-1">Narration</label>
+    <label for="voucher-narration" class="text-sm font-medium block mb-1"
+      >Narration</label
+    >
     <textarea
+      id="voucher-narration"
       bind:value={formHeader.narration}
       rows="2"
       class="w-full p-2 bg-neutral-800 border border-gray-600 rounded text-sm resize-none"

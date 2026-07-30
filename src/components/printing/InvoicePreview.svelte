@@ -789,124 +789,124 @@
     border-color: #000000 !important;
   }
 
-  .invoice-container thead th {
+  :global(.invoice-container thead th) {
     color: #000000 !important;
     border-color: #000000 !important;
   }
 
-  .invoice-container tfoot td {
+  :global(.invoice-container tfoot td) {
     color: #000000 !important;
     border-color: #000000 !important;
   }
 
   /* Force all borders to be black */
-  .invoice-container .border,
-  .invoice-container .border-black,
-  .invoice-container .border-gray-300,
-  .invoice-container .border-t,
-  .invoice-container .border-b,
-  .invoice-container .border-r,
-  .invoice-container .border-l,
-  .invoice-container .border-t-2,
-  .invoice-container .border-b-2 {
+  :global(.invoice-container .border),
+  :global(.invoice-container .border-black),
+  :global(.invoice-container .border-gray-300),
+  :global(.invoice-container .border-t),
+  :global(.invoice-container .border-b),
+  :global(.invoice-container .border-r),
+  :global(.invoice-container .border-l),
+  :global(.invoice-container .border-t-2),
+  :global(.invoice-container .border-b-2) {
     border-color: #000000 !important;
   }
 
   /* Gray backgrounds for headers/footers */
-  .invoice-container .bg-gray-100 {
+  :global(.invoice-container .bg-gray-100) {
     background-color: #f3f4f6 !important;
   }
 
-  .invoice-container .bg-gray-200 {
+  :global(.invoice-container .bg-gray-200) {
     background-color: #e5e7eb !important;
   }
 
-  .invoice-container thead tr {
+  :global(.invoice-container thead tr) {
     background-color: #e5e7eb !important;
   }
 
-  .invoice-container tfoot tr {
+  :global(.invoice-container tfoot tr) {
     background-color: #e5e7eb !important;
   }
 
   /* Text colors */
-  .invoice-container .text-gray-500 {
+  :global(.invoice-container .text-gray-500) {
     color: #6b7280 !important;
   }
 
-  .invoice-container .text-gray-600 {
+  :global(.invoice-container .text-gray-600) {
     color: #4b5563 !important;
   }
 
-  .invoice-container .text-red-600 {
+  :global(.invoice-container .text-red-600) {
     color: #dc2626 !important;
   }
 
-  .invoice-container .text-black {
+  :global(.invoice-container .text-black) {
     color: #000000 !important;
   }
 
   /* Force standard colors for PDF export (html2canvas doesn't support oklch) */
-  .pdf-export-mode {
+  :global(.pdf-export-mode) {
     color: #000000 !important;
     background-color: #ffffff !important;
   }
 
-  .pdf-export-mode * {
+  :global(.pdf-export-mode *) {
     /* Reset any oklch colors to standard equivalents */
     border-color: inherit !important;
   }
 
   /* Override Tailwind colors with standard hex values during export */
-  .pdf-export-mode .text-neutral-400 {
+  :global(.pdf-export-mode .text-neutral-400) {
     color: #a3a3a3 !important;
   }
 
-  .pdf-export-mode .bg-green-600 {
+  :global(.pdf-export-mode .bg-green-600) {
     background-color: #16a34a !important;
   }
 
-  .pdf-export-mode .bg-green-500 {
+  :global(.pdf-export-mode .bg-green-500) {
     background-color: #22c55e !important;
   }
 
-  .pdf-export-mode .text-white {
+  :global(.pdf-export-mode .text-white) {
     color: #ffffff !important;
   }
 
-  .pdf-export-mode .bg-white {
+  :global(.pdf-export-mode .bg-white) {
     background-color: #ffffff !important;
   }
 
-  .pdf-export-mode .text-black {
+  :global(.pdf-export-mode .text-black) {
     color: #000000 !important;
   }
 
-  .pdf-export-mode .bg-gray-200 {
+  :global(.pdf-export-mode .bg-gray-200) {
     background-color: #e5e7eb !important;
   }
 
-  .pdf-export-mode .bg-gray-100 {
+  :global(.pdf-export-mode .bg-gray-100) {
     background-color: #f3f4f6 !important;
   }
 
-  .pdf-export-mode .text-gray-500 {
+  :global(.pdf-export-mode .text-gray-500) {
     color: #6b7280 !important;
   }
 
-  .pdf-export-mode .text-gray-600 {
+  :global(.pdf-export-mode .text-gray-600) {
     color: #4b5563 !important;
   }
 
-  .pdf-export-mode .border-gray-300 {
+  :global(.pdf-export-mode .border-gray-300) {
     border-color: #d1d5db !important;
   }
 
-  .pdf-export-mode .text-red-600 {
+  :global(.pdf-export-mode .text-red-600) {
     color: #dc2626 !important;
   }
 
-  .pdf-export-mode .border-black {
+  :global(.pdf-export-mode .border-black) {
     border-color: #000000 !important;
   }
 

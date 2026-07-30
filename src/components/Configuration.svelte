@@ -101,9 +101,11 @@
         {#if activeTab === "General"}
           <div class="space-y-4">
             <div>
-              <label class="text-sm font-medium block mb-1">Number Format</label
+              <label for="number-format" class="text-sm font-medium block mb-1"
+                >Number Format</label
               >
               <select
+                id="number-format"
                 bind:value={config.numberFormat}
                 class="w-full border border-neutral-600 rounded-lg p-2 bg-neutral-800 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors duration-150"
               >
@@ -114,8 +116,11 @@
               </select>
             </div>
             <div>
-              <label class="text-sm font-medium block mb-1">Date Format</label>
+              <label for="date-format" class="text-sm font-medium block mb-1"
+                >Date Format</label
+              >
               <select
+                id="date-format"
                 bind:value={config.dateFormat}
                 class="w-full border border-neutral-600 rounded-lg p-2 bg-neutral-800 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors duration-150"
               >
@@ -125,10 +130,13 @@
               </select>
             </div>
             <div>
-              <label class="text-sm font-medium block mb-1"
+              <label
+                for="currency-decimal"
+                class="text-sm font-medium block mb-1"
                 >Currency Decimal Places</label
               >
               <input
+                id="currency-decimal"
                 type="number"
                 bind:value={config.currencyDecimalPlaces}
                 min="0"
@@ -145,10 +153,13 @@
               <span class="text-sm">Skip currency separator (commas)</span>
             </label>
             <div>
-              <label class="text-sm font-medium block mb-1"
+              <label
+                for="delete-exported"
+                class="text-sm font-medium block mb-1"
                 >Delete Exported Files on Close</label
               >
               <select
+                id="delete-exported"
                 bind:value={config.deleteExportedFilesOnClose}
                 class="w-full border border-neutral-600 rounded-lg p-2 bg-neutral-800 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors duration-150"
               >
@@ -233,10 +244,11 @@
         {:else if activeTab === "Inventory"}
           <div class="space-y-4">
             <div>
-              <label class="text-sm font-medium block mb-1"
+              <label for="qty-decimal" class="text-sm font-medium block mb-1"
                 >Quantity Decimal Places</label
               >
               <input
+                id="qty-decimal"
                 type="number"
                 bind:value={config.qtyDecimalPlaces}
                 min="0"
@@ -245,10 +257,13 @@
               />
             </div>
             <div>
-              <label class="text-sm font-medium block mb-1"
+              <label
+                for="stock-valuation"
+                class="text-sm font-medium block mb-1"
                 >Stock Valuation Method</label
               >
               <select
+                id="stock-valuation"
                 bind:value={config.stockValuationMethod}
                 class="w-full border border-neutral-600 rounded-lg p-2 bg-neutral-800 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors duration-150"
               >
@@ -311,10 +326,11 @@
         {:else if activeTab === "Hardware"}
           <div class="space-y-4">
             <div>
-              <label class="text-sm font-medium block mb-1"
+              <label for="printing-style" class="text-sm font-medium block mb-1"
                 >Printing Style</label
               >
               <select
+                id="printing-style"
                 bind:value={config.printingStyle}
                 class="w-full border border-neutral-600 rounded-lg p-2 bg-neutral-800 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors duration-150"
               >
@@ -324,10 +340,11 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-sm font-medium block mb-1"
+                <label for="page-length" class="text-sm font-medium block mb-1"
                   >Page Length (inches)</label
                 >
                 <input
+                  id="page-length"
                   type="number"
                   bind:value={config.pageLength}
                   step="0.5"
@@ -337,10 +354,11 @@
                 />
               </div>
               <div>
-                <label class="text-sm font-medium block mb-1"
+                <label for="lines-normal" class="text-sm font-medium block mb-1"
                   >Lines/Page (Normal)</label
                 >
                 <input
+                  id="lines-normal"
                   type="number"
                   bind:value={config.linesPerPageNormal}
                   min="20"
@@ -349,10 +367,13 @@
                 />
               </div>
               <div>
-                <label class="text-sm font-medium block mb-1"
+                <label
+                  for="lines-landscape"
+                  class="text-sm font-medium block mb-1"
                   >Lines/Page (Landscape)</label
                 >
                 <input
+                  id="lines-landscape"
                   type="number"
                   bind:value={config.linesPerPageLandscape}
                   min="20"
@@ -364,10 +385,11 @@
             {#if config.printingStyle === "Windows"}
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="text-sm font-medium block mb-1"
+                  <label for="top-margin" class="text-sm font-medium block mb-1"
                     >Top Margin (inches)</label
                   >
                   <input
+                    id="top-margin"
                     type="number"
                     bind:value={config.paperTopMargin}
                     step="0.05"
@@ -377,10 +399,13 @@
                   />
                 </div>
                 <div>
-                  <label class="text-sm font-medium block mb-1"
+                  <label
+                    for="left-margin"
+                    class="text-sm font-medium block mb-1"
                     >Left Margin (inches)</label
                   >
                   <input
+                    id="left-margin"
                     type="number"
                     bind:value={config.paperLeftMargin}
                     step="0.05"

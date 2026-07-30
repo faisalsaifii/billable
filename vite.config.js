@@ -30,4 +30,44 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Separate vendor libraries into their own chunks
+          if (id.includes("node_modules")) {
+            // Split large libraries into separate chunks
+            if (id.includes("jspdf") || id.includes("html2canvas")) {
+              return "pdf-libs";
+            }
+            if (id.includes("tauri")) {
+              return "tauri";
+            }
+            if (id.includes("svelte")) {
+              return "svelte-vendor";
+            }
+            // All other node_modules go to vendor chunk
+            return "vendor";
+          }
+          // Split component groups
+          if (id.includes("/components/masters/")) {
+            return "masters";
+          }
+          if (id.includes("/components/transactions/")) {
+            return "transactions";
+          }
+          if (id.includes("/components/printing/")) {
+            return "printing";
+          }
+          if (id.includes("/components/display/")) {
+            return "display";
+          }
+          if (id.includes("/components/datamanagement/")) {
+            return "datamanagement";
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 }));

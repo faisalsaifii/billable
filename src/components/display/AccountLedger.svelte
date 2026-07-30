@@ -11,12 +11,22 @@
   let selectedAccountId = $state(0);
   let fromDate = $state("");
   let toDate = $state("");
-  let ledger: { date: string; voucherType: string; vchNo: string; narration: string; debit: number; credit: number; balance: number }[] = $state([]);
+  let ledger: {
+    date: string;
+    voucherType: string;
+    vchNo: string;
+    narration: string;
+    debit: number;
+    credit: number;
+    balance: number;
+  }[] = $state([]);
   let loading = $state(false);
   let error = $state("");
 
   $effect(() => {
-    const unsub = session.subscribe(s => { if (s.companyId) companyId = s.companyId; });
+    const unsub = session.subscribe((s) => {
+      if (s.companyId) companyId = s.companyId;
+    });
     return unsub;
   });
 
@@ -28,41 +38,78 @@
 
   const load = async () => {
     if (!selectedAccountId) return;
-    loading = true; error = "";
+    loading = true;
+    error = "";
     try {
-      ledger = await voucherService.getAccountLedger(companyId, selectedAccountId, fromDate || undefined, toDate || undefined);
-    } catch (e) { error = e instanceof Error ? e.message : "Error"; }
-    finally { loading = false; }
+      ledger = await voucherService.getAccountLedger(
+        companyId,
+        selectedAccountId,
+        fromDate || undefined,
+        toDate || undefined,
+      );
+    } catch (e) {
+      error = e instanceof Error ? e.message : "Error";
+    } finally {
+      loading = false;
+    }
   };
 
   const totalDebit = $derived(ledger.reduce((s, r) => s + r.debit, 0));
   const totalCredit = $derived(ledger.reduce((s, r) => s + r.credit, 0));
-  const closingBalance = $derived(ledger.length ? ledger[ledger.length - 1].balance : 0);
+  const closingBalance = $derived(
+    ledger.length ? ledger[ledger.length - 1].balance : 0,
+  );
 </script>
 
 <div class="p-6">
   <h1 class="text-2xl font-bold mb-4">Account Ledger</h1>
   <div class="flex gap-3 mb-6 items-end flex-wrap">
     <div>
-      <label class="text-xs text-gray-400 block mb-1">Account</label>
-      <select bind:value={selectedAccountId} class="p-2 bg-neutral-800 border border-gray-600 rounded text-sm">
+      <label for="account-select" class="text-xs text-gray-400 block mb-1"
+        >Account</label
+      >
+      <select
+        id="account-select"
+        bind:value={selectedAccountId}
+        class="p-2 bg-neutral-800 border border-gray-600 rounded text-sm"
+      >
         {#each accounts as a}<option value={a.id}>{a.name}</option>{/each}
       </select>
     </div>
     <div>
-      <label class="text-xs text-gray-400 block mb-1">From</label>
-      <input type="date" bind:value={fromDate} class="p-2 bg-neutral-800 border border-gray-600 rounded text-sm" />
+      <label for="from-date" class="text-xs text-gray-400 block mb-1"
+        >From</label
+      >
+      <input
+        id="from-date"
+        type="date"
+        bind:value={fromDate}
+        class="p-2 bg-neutral-800 border border-gray-600 rounded text-sm"
+      />
     </div>
     <div>
-      <label class="text-xs text-gray-400 block mb-1">To</label>
-      <input type="date" bind:value={toDate} class="p-2 bg-neutral-800 border border-gray-600 rounded text-sm" />
+      <label for="to-date" class="text-xs text-gray-400 block mb-1">To</label>
+      <input
+        id="to-date"
+        type="date"
+        bind:value={toDate}
+        class="p-2 bg-neutral-800 border border-gray-600 rounded text-sm"
+      />
     </div>
-    <button onclick={load} class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm">Show</button>
+    <button
+      onclick={load}
+      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+      >Show</button
+    >
   </div>
-  {#if error}<div class="bg-red-900 text-red-100 p-3 rounded mb-4">{error}</div>{/if}
+  {#if error}<div class="bg-red-900 text-red-100 p-3 rounded mb-4">
+      {error}
+    </div>{/if}
   {#if loading}<p class="text-gray-400">Loading...</p>
   {:else if ledger.length === 0}
-    <p class="text-gray-400 text-sm">No transactions found for selected criteria.</p>
+    <p class="text-gray-400 text-sm">
+      No transactions found for selected criteria.
+    </p>
   {:else}
     <table class="w-full text-sm">
       <thead>
@@ -82,10 +129,20 @@
             <td class="p-2">{row.date}</td>
             <td class="p-2 text-gray-400 text-xs">{row.voucherType}</td>
             <td class="p-2">{row.vchNo}</td>
-            <td class="p-2 text-gray-400 truncate max-w-xs">{row.narration || "-"}</td>
-            <td class="p-2 text-right">{row.debit > 0 ? row.debit.toFixed(2) : "-"}</td>
-            <td class="p-2 text-right">{row.credit > 0 ? row.credit.toFixed(2) : "-"}</td>
-            <td class="p-2 text-right font-medium {row.balance >= 0 ? 'text-blue-300' : 'text-red-300'}">{row.balance.toFixed(2)}</td>
+            <td class="p-2 text-gray-400 truncate max-w-xs"
+              >{row.narration || "-"}</td
+            >
+            <td class="p-2 text-right"
+              >{row.debit > 0 ? row.debit.toFixed(2) : "-"}</td
+            >
+            <td class="p-2 text-right"
+              >{row.credit > 0 ? row.credit.toFixed(2) : "-"}</td
+            >
+            <td
+              class="p-2 text-right font-medium {row.balance >= 0
+                ? 'text-blue-300'
+                : 'text-red-300'}">{row.balance.toFixed(2)}</td
+            >
           </tr>
         {/each}
       </tbody>
@@ -94,7 +151,11 @@
           <td colspan="4" class="p-2">Totals / Closing Balance</td>
           <td class="p-2 text-right">{totalDebit.toFixed(2)}</td>
           <td class="p-2 text-right">{totalCredit.toFixed(2)}</td>
-          <td class="p-2 text-right {closingBalance >= 0 ? 'text-blue-300' : 'text-red-300'}">{closingBalance.toFixed(2)}</td>
+          <td
+            class="p-2 text-right {closingBalance >= 0
+              ? 'text-blue-300'
+              : 'text-red-300'}">{closingBalance.toFixed(2)}</td
+          >
         </tr>
       </tfoot>
     </table>
